@@ -1,16 +1,26 @@
 import { useState } from "react"
 import { cn } from "@/lib/utils"
 import { Badge, Button } from "@/core/components"
-import { Outlet } from "react-router"
+import { NavLink, Outlet, useNavigate } from "react-router"
 import { menuItems } from "../types"
-import { Menu, X } from "lucide-react"
+import { LogOut, Menu, X } from "lucide-react"
+import { useAuthStore } from "@/modules/auth/store/AuthStore"
 
 interface DashboardLayoutProps {
     title?: string
 }
 
 export default function DashboardLayout({ title = "Dashboard" }: DashboardLayoutProps) {
-    const [sidebarOpen, setSidebarOpen] = useState(false)
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const user = useAuthStore(state => state.user);
+    const userInitial = user?.nombre ? user.nombre[0].toUpperCase() : 'U';
+    const logout = useAuthStore(state => state.logout);
+    const navigate = useNavigate();
+
+    const handleLogout = () => {
+        logout();
+        navigate('/auth', { replace: true });
+    };
 
     return (
         <div className="flex h-screen bg-gray-50">
@@ -32,20 +42,34 @@ export default function DashboardLayout({ title = "Dashboard" }: DashboardLayout
                     <ul className="space-y-1">
                         {menuItems.map((item) => (
                             <li key={item.href}>
-                                <a
-                                    href={item.href}
-                                    className={cn(
+                                <NavLink
+                                    to={item.href}
+                                    end={item.href === "/dashboard"}
+                                    className={({ isActive }) => cn(
                                         "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors",
-                                        item.active
+                                        isActive
                                             ? "bg-green-50 text-green-700 border-r-2 border-green-700"
                                             : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
                                     )}
                                 >
                                     <item.icon className="mr-3 h-5 w-5" />
                                     {item.label}
-                                </a>
+                                </NavLink>
                             </li>
                         ))}
+
+                        {/* Separador visual */}
+                        <li className="mt-6 pt-4 border-t border-gray-200">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full justify-start gap-2 hover:bg-destructive/10 hover:text-destructive transition-colors"
+                                onClick={handleLogout}
+                            >
+                                <LogOut className="mr-3 h-5 w-5" />
+                                <span>Logout</span>
+                            </Button>
+                        </li>
                     </ul>
                 </nav>
             </div>
@@ -68,9 +92,9 @@ export default function DashboardLayout({ title = "Dashboard" }: DashboardLayout
                             </Badge>
                             <div className="flex items-center space-x-2">
                                 <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                                    <span className="text-white text-sm font-medium">U</span>
+                                    <span className="text-white text-sm font-medium">{userInitial}</span>
                                 </div>
-                                <span className="text-sm font-medium text-gray-700">Usuario Admin</span>
+                                <span className="text-sm font-medium text-gray-700">{user?.nombre}</span>
                             </div>
                         </div>
                     </div>
