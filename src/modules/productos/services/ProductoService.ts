@@ -1,5 +1,5 @@
 import carfaithApi from "@/core/api/carfaithApi"
-import type { CreateProductoRequest, LineaDeProducto, ProductoList } from "../types/ProductoType";
+import type { CreateProductoRequest, EditProductoRequest, LineaDeProducto, ProductoList } from "../types/ProductoType";
 
 export const getProductos = async () => {
     try {
@@ -35,4 +35,37 @@ export const createProducto = async (data: CreateProductoRequest) => {
         throw error;
     }
 
+}
+
+export const editProducto = async (data: EditProductoRequest) => {
+    try {
+
+        console.log({
+            idProducto: data.idProducto,
+            codigoProducto: data.codigoProducto,
+            nombre: data.nombre,
+            lineaDeProducto: data.lineaDeProducto
+        })
+
+        const response = await carfaithApi.put<EditProductoRequest>('/Producto/EditarProducto', {
+            idProducto: data.idProducto,
+            codigoProducto: data.codigoProducto,
+            nombre: data.nombre,
+            lineaDeProducto: data.lineaDeProducto
+        })
+        return response.data;
+    } catch (error) {
+        console.error("Error editing product:", error);
+        throw error;
+    }
+}
+
+export const deleteProducto = async (id: number) => {
+    try {
+        const response = await carfaithApi.delete(`/Producto/EliminarProducto/${id}`);
+        return response.data;
+    } catch (error) {
+        console.error("Error deleting product:", error);
+        throw error;
+    }
 }

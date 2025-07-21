@@ -17,3 +17,10 @@ export interface CreateProductoRequest {
     nombre: string,
     lineaDeProducto: number
 }
+
+export interface EditProductoRequest {
+    idProducto: number;
+    codigoProducto: string;
+    nombre: string;
+    lineaDeProducto: number;
+}
