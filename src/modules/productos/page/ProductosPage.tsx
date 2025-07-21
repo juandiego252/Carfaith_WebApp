@@ -1,8 +1,8 @@
 import { Plus, Search, MoreHorizontal, Edit, Trash2, Package, Tag } from "lucide-react"
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, Input, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/core/components"
 import { useEffect, useState } from "react"
-import { createProducto, getLineasProductos, getProductos } from "../services/ProductoService";
-import type { LineaDeProducto, ProductoList } from "../types/ProductoType";
+import { createProducto, deleteProducto, editProducto, getLineasProductos, getProductos } from "../services/ProductoService";
+import type { EditProductoRequest, LineaDeProducto, ProductoList } from "../types/ProductoType";
 import { ProductoDialog } from "../components/ProductoDialog";
 
 export const ProductosPage = () => {
@@ -15,7 +15,7 @@ export const ProductosPage = () => {
 
   // Estados para el dialogo
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<ProductoList | null>(null);
+  const [editingProduct, setEditingProduct] = useState<EditProductoRequest | null>(null);
 
   // Función para cargar productos que podemos reutilizar
   const fetchProductos = async () => {
@@ -49,15 +49,26 @@ export const ProductosPage = () => {
   }) => {
     try {
       setIsSubmitting(true);
-      await createProducto({
-        codigoProducto: data.codigoProducto,
-        nombre: data.nombre,
-        lineaDeProducto: data.lineaDeProducto
-      });
+
+      if (data.idProducto) {
+        await editProducto({
+          idProducto: data.idProducto,
+          codigoProducto: data.codigoProducto,
+          nombre: data.nombre,
+          lineaDeProducto: data.lineaDeProducto
+        });
+      } else {
+        await createProducto({
+          codigoProducto: data.codigoProducto,
+          nombre: data.nombre,
+          lineaDeProducto: data.lineaDeProducto
+        });
+      }
+
       await fetchProductos();
 
       setIsDialogOpen(false);
-      
+
     } catch (error) {
       console.error('Error al guardar el producto:', error);
       setError("Error al guardar el producto");
@@ -66,6 +77,19 @@ export const ProductosPage = () => {
     }
   };
 
+  const handleDelete = async (idProducto: number) => {
+    try {
+      setIsSubmitting(true);
+      await deleteProducto(idProducto);
+      await fetchProductos();
+      setError(null);
+    } catch (error) {
+      console.log('Error al eliminar el producto:', error);
+      setError('Error al eliminar el producto');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
   return (
     <div className="space-y-6">
       {/* Header con estadísticas */}
@@ -187,7 +211,12 @@ export const ProductosPage = () => {
                             <DropdownMenuLabel>Acciones</DropdownMenuLabel>
                             <DropdownMenuItem
                               onClick={() => {
-                                setEditingProduct(producto);
+                                setEditingProduct({
+                                  idProducto: producto.idProducto,
+                                  codigoProducto: producto.codigoProducto,
+                                  nombre: producto.nombreProducto,
+                                  lineaDeProducto: producto.idLineaProdcuto
+                                });
                                 setIsDialogOpen(true);
                               }}
                             >
@@ -195,7 +224,11 @@ export const ProductosPage = () => {
                               Editar
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-red-600">
+                            <DropdownMenuItem
+                              className="text-red-600"
+                              onClick={() => handleDelete(producto.idProducto)}
+                              disabled={isSubmitting}
+                            >
                               <Trash2 className="mr-2 h-4 w-4" />
                               Eliminar
                             </DropdownMenuItem>
@@ -223,7 +256,12 @@ export const ProductosPage = () => {
       <ProductoDialog
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
-        editingProduct={editingProduct}
+        editingProduct={editingProduct ? {
+          id: editingProduct.idProducto,
+          codigoProducto: editingProduct.codigoProducto,
+          nombreProducto: editingProduct.nombre,
+          idLineaProdcuto: editingProduct.lineaDeProducto
+        } : null}
         lineasProductos={lineasProducto.map(l => ({ id: l.idLinea, nombreLineaProducto: l.nombre }))}
         onSubmit={handleSubmit}
       />

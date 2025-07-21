@@ -8,3 +8,5 @@ export * from './ui/select';
 export * from './ui/table';
 export * from './ui/textarea';
 export * from './ui/dialog';
+export * from './ui/tabs';
+export * from './ui/switch';
