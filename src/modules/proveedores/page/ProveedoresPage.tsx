@@ -1,66 +1,93 @@
-import { Plus, Search, MoreHorizontal, Edit, Trash2, Package, Tag } from "lucide-react"
-import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, Input, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/core/components"
-import { useEffect, useState } from "react"
-import { createProducto, getLineasProductos, getProductos } from "../services/ProductoService";
-import type { LineaDeProducto, ProductoList } from "../../proveedores/types/ProductoType";
-import { ProductoDialog } from "../components/ProductoDialog";
+import {
+  Plus,
+  Search,
+  Filter,
+  MoreHorizontal,
+  Edit,
+  Trash2,
+  Eye,
+  Package,
+  Tag,
+} from "lucide-react";
+import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  Input,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/core/components";
+import { useEffect, useState } from "react";
+import type {
+  CreateProveedorRequest,
+  Proveedor,
+} from "../../productos/types/ProveedorType";
+import { crearProveedor, getProveedores } from "../services/ProveedorService";
+import { ProveedorDialog } from "../components/ProveedorDialog";
 
-export const ProductosPage = () => {
-  // Estados para productos y UI
-  const [productos, setProductos] = useState<ProductoList[]>([]);
-  const [lineasProducto, setLineasProducto] = useState<LineaDeProducto[]>([]);
+export const ProveedoresPage = () => {
+  const [proveedores, setProveedores] = useState<Proveedor[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Estados para el dialogo
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<ProductoList | null>(null);
+  const [editingProveedor, setEditingProveedor] = useState<Proveedor | null>(
+    null
+  );
 
-  // Función para cargar productos que podemos reutilizar
-  const fetchProductos = async () => {
+  const fetchProveedores = async () => {
     try {
       setLoading(true);
-      const [productosData, lineasProductoData] = await Promise.all([
-        getProductos(),
-        getLineasProductos()
-      ])
-      setProductos(productosData);
-      setLineasProducto(lineasProductoData);
+      const data = await getProveedores();
+      setProveedores(data);
       setError(null);
     } catch (err) {
-      setError("Error al cargar los productos");
+      setError("Error al cargar los proveedores");
       console.error(err);
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchProductos();
+    fetchProveedores();
   }, []);
 
   // Manejar envío del formulario
-  const handleSubmit = async (data: {
-    idProducto?: number,
-    codigoProducto: string,
-    nombre: string,
-    lineaDeProducto: number
-  }) => {
+  const handleSubmit = async (data: CreateProveedorRequest) => {
     try {
       setIsSubmitting(true);
-      await createProducto({
-        codigoProducto: data.codigoProducto,
-        nombre: data.nombre,
-        lineaDeProducto: data.lineaDeProducto
-      });
-      await fetchProductos();
 
+      // Agrego fechaRegistro actual y aseguro estado como string
+      const formattedData: CreateProveedorRequest = {
+        ...data,
+        fechaRegistro: new Date().toISOString(),
+        estado: data.estado,
+      };
+
+      await crearProveedor(formattedData);
+
+      await fetchProveedores();
       setIsDialogOpen(false);
-      
     } catch (error) {
-      console.error('Error al guardar el producto:', error);
-      setError("Error al guardar el producto");
+      console.error("Error al guardar el proveedor:", error);
+      setError("Error al guardar el proveedor");
     } finally {
       setIsSubmitting(false);
     }
@@ -72,31 +99,37 @@ export const ProductosPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Productos</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Proveedores
+            </CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{productos.length}</div>
+            <div className="text-2xl font-bold">{proveedores.length}</div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Líneas de Producto</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Líneas de Producto
+            </CardTitle>
             <Tag className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{lineasProducto.length}</div>
+            <div className="text-2xl font-bold">-</div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Productos Activos</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Productos Activos
+            </CardTitle>
             <Package className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{productos.length}</div>
+            <div className="text-2xl font-bold"></div>
           </CardContent>
         </Card>
 
@@ -106,7 +139,7 @@ export const ProductosPage = () => {
             <Package className="h-4 w-4 text-red-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">-</div>
+            <div className="text-2xl font-bold"></div>
           </CardContent>
         </Card>
       </div>
@@ -116,19 +149,21 @@ export const ProductosPage = () => {
         <CardHeader>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <CardTitle>Lista de Productos</CardTitle>
-              <CardDescription>Gestiona todos los productos del inventario</CardDescription>
+              <CardTitle>Lista de Proveedores</CardTitle>
+              <CardDescription>
+                Gestiona todos los Proveedores del sistema
+              </CardDescription>
             </div>
             <div className="flex gap-2">
               <Button
                 onClick={() => {
-                  setEditingProduct(null);
+                  setEditingProveedor(null);
                   setIsDialogOpen(true);
                 }}
                 disabled={isSubmitting}
               >
                 <Plus className="mr-2 h-4 w-4" />
-                Nuevo Producto
+                Nuevo Proveedor
               </Button>
             </div>
           </div>
@@ -140,7 +175,7 @@ export const ProductosPage = () => {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Buscar productos por nombre o código..."
+                placeholder="Buscar proveedores por nombre..."
                 className="pl-10"
               />
             </div>
@@ -153,29 +188,58 @@ export const ProductosPage = () => {
           )}
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
+            <div
+              className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative"
+              role="alert"
+            >
               <strong className="font-bold">Error:</strong>
               <span className="block sm:inline"> {error}</span>
             </div>
           )}
 
+          {/* Tabla de proveedores */}
           {!loading && !error && (
             <div className="rounded-md border">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Código</TableHead>
-                    <TableHead>Nombre</TableHead>
-                    <TableHead>Línea de Producto</TableHead>
+                    <TableHead>Proveedor</TableHead>
+                    <TableHead>Pais de Orígen</TableHead>
+                    <TableHead>Tipo de Proveedor</TableHead>
+                    <TableHead>Telefono</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Persona de Contacto</TableHead>
+                    <TableHead>Fecha de Registro</TableHead>
+                    <TableHead>Estado</TableHead>
                     <TableHead className="text-right">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {productos.map((producto) => (
-                    <TableRow key={producto.idProducto}>
-                      <TableCell className="font-medium">{producto.codigoProducto}</TableCell>
-                      <TableCell>{producto.nombreProducto}</TableCell>
-                      <TableCell>{producto.nombreLineaProducto}</TableCell>
+                  {proveedores.map((proveedor) => (
+                    <TableRow key={proveedor.idProveedor}>
+                      <TableCell className="font-medium">
+                        {proveedor.nombreProveedor}
+                      </TableCell>
+                      <TableCell>{proveedor.paisOrigen}</TableCell>
+                      <TableCell>{proveedor.tipoProveedor}</TableCell>
+                      <TableCell>{proveedor.telefono}</TableCell>
+                      <TableCell>{proveedor.email}</TableCell>
+                      <TableCell>{proveedor.personaContacto}</TableCell>
+                      <TableCell>
+                        {proveedor.fechaRegistro &&
+                          new Date(
+                            proveedor.fechaRegistro
+                          ).toLocaleDateString()}
+                      </TableCell>
+
+                      <TableCell>
+                        <Badge
+                          variant={proveedor.estado ? "default" : "destructive"}
+                        >
+                          {proveedor.estado ? "Activo" : "Inactivo"}
+                        </Badge>
+                      </TableCell>
+
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -185,12 +249,11 @@ export const ProductosPage = () => {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                            <DropdownMenuItem
-                              onClick={() => {
-                                setEditingProduct(producto);
-                                setIsDialogOpen(true);
-                              }}
-                            >
+                            <DropdownMenuItem>
+                              <Eye className="mr-2 h-4 w-4" />
+                              Ver detalles
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
                               <Edit className="mr-2 h-4 w-4" />
                               Editar
                             </DropdownMenuItem>
@@ -209,24 +272,26 @@ export const ProductosPage = () => {
             </div>
           )}
 
-          {!loading && !error && productos.length === 0 && (
+          {!loading && !error && proveedores.length === 0 && (
             <div className="text-center py-8">
               <Package className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No hay productos</h3>
+              <h3 className="mt-2 text-sm font-medium text-gray-900">
+                No hay proveedores
+              </h3>
               <p className="mt-1 text-sm text-gray-500">
-                No se encontraron productos en el sistema.
+                No se encontraron proveedores en el sistema.
               </p>
             </div>
           )}
         </CardContent>
       </Card>
-      <ProductoDialog
+
+      <ProveedorDialog
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
-        editingProduct={editingProduct}
-        lineasProductos={lineasProducto.map(l => ({ id: l.idLinea, nombreLineaProducto: l.nombre }))}
+        editingProveedor={editingProveedor}
         onSubmit={handleSubmit}
       />
     </div>
-  )
-}
+  );
+};
