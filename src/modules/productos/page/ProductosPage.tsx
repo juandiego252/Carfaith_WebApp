@@ -1,34 +1,70 @@
-
 import { Plus, Search, MoreHorizontal, Edit, Trash2, Package, Tag } from "lucide-react"
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, Input, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/core/components"
 import { useEffect, useState } from "react"
-import { getProductos } from "../services/ProductoService";
-import type { Producto } from "../types/ProductoType";
+import { createProducto, getLineasProductos, getProductos } from "../services/ProductoService";
+import type { LineaDeProducto, ProductoList } from "../types/ProductoType";
+import { ProductoDialog } from "../components/ProductoDialog";
 
 export const ProductosPage = () => {
-
-  const [productos, setProductos] = useState<Producto[]>([]);
+  // Estados para productos y UI
+  const [productos, setProductos] = useState<ProductoList[]>([]);
+  const [lineasProducto, setLineasProducto] = useState<LineaDeProducto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Estados para el dialogo
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<ProductoList | null>(null);
+
+  // Función para cargar productos que podemos reutilizar
+  const fetchProductos = async () => {
+    try {
+      setLoading(true);
+      const [productosData, lineasProductoData] = await Promise.all([
+        getProductos(),
+        getLineasProductos()
+      ])
+      setProductos(productosData);
+      setLineasProducto(lineasProductoData);
+      setError(null);
+    } catch (err) {
+      setError("Error al cargar los productos");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   useEffect(() => {
-    const fetchProductos = async () => {
-      try {
-        setLoading(true);
-        const data = await getProductos();
-        setProductos(data);
-        setError(null);
-      } catch (err) {
-        setError("Error al cargar los productos");
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    }
     fetchProductos();
   }, []);
 
+  // Manejar envío del formulario
+  const handleSubmit = async (data: {
+    idProducto?: number,
+    codigoProducto: string,
+    nombre: string,
+    lineaDeProducto: number
+  }) => {
+    try {
+      setIsSubmitting(true);
+      await createProducto({
+        codigoProducto: data.codigoProducto,
+        nombre: data.nombre,
+        lineaDeProducto: data.lineaDeProducto
+      });
+      await fetchProductos();
 
+      setIsDialogOpen(false);
+      
+    } catch (error) {
+      console.error('Error al guardar el producto:', error);
+      setError("Error al guardar el producto");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -50,7 +86,7 @@ export const ProductosPage = () => {
             <Tag className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">-</div>
+            <div className="text-2xl font-bold">{lineasProducto.length}</div>
           </CardContent>
         </Card>
 
@@ -84,7 +120,13 @@ export const ProductosPage = () => {
               <CardDescription>Gestiona todos los productos del inventario</CardDescription>
             </div>
             <div className="flex gap-2">
-              <Button>
+              <Button
+                onClick={() => {
+                  setEditingProduct(null);
+                  setIsDialogOpen(true);
+                }}
+                disabled={isSubmitting}
+              >
                 <Plus className="mr-2 h-4 w-4" />
                 Nuevo Producto
               </Button>
@@ -132,8 +174,8 @@ export const ProductosPage = () => {
                   {productos.map((producto) => (
                     <TableRow key={producto.idProducto}>
                       <TableCell className="font-medium">{producto.codigoProducto}</TableCell>
-                      <TableCell>{producto.nombre}</TableCell>
-                      <TableCell>{producto.lineaDeProducto}</TableCell>
+                      <TableCell>{producto.nombreProducto}</TableCell>
+                      <TableCell>{producto.nombreLineaProducto}</TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -143,7 +185,12 @@ export const ProductosPage = () => {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                            <DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setEditingProduct(producto);
+                                setIsDialogOpen(true);
+                              }}
+                            >
                               <Edit className="mr-2 h-4 w-4" />
                               Editar
                             </DropdownMenuItem>
@@ -173,6 +220,13 @@ export const ProductosPage = () => {
           )}
         </CardContent>
       </Card>
+      <ProductoDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        editingProduct={editingProduct}
+        lineasProductos={lineasProducto.map(l => ({ id: l.idLinea, nombreLineaProducto: l.nombre }))}
+        onSubmit={handleSubmit}
+      />
     </div>
   )
 }
