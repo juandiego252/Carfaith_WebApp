@@ -1,5 +1,5 @@
 import carfaithApi from "@/core/api/carfaithApi"
-import type { CreateProductoRequest, LineaDeProducto, ProductoList } from "../../proveedores/types/ProductoType";
+import type { CreateProductoRequest, LineaDeProducto, ProductoList } from "../types/ProductoType";
 
 export const getProductos = async () => {
     try {

@@ -4,7 +4,6 @@ import { LoginPage } from "@/modules/auth/pages/LoginPage"
 import { useAuthStore } from "@/modules/auth/store/AuthStore";
 import { DashboardHomePage } from "@/modules/dashboard/page/DashboardHomePage";
 import { ProductosPage } from "@/modules/productos/page/ProductosPage";
-import { ProveedoresPage } from "@/modules/proveedores/page/ProveedoresPage";
 import { lazy, Suspense, useEffect, useState } from "react"
 import { BrowserRouter, Navigate, Route, Routes } from "react-router"
 
@@ -53,8 +52,6 @@ export const AppRouter = () => {
                     <Route index element={<DashboardHomePage />} />
                     {/*Rutas para los modulos del menu  */}
                     <Route path="productos" element={<ProductosPage />} />
-                    {/* Ruta del menu para proveedores  */}
-                    <Route path="proveedores" element={<ProveedoresPage />} />
                 </Route>
 
                 {/* Ruta por defecto - refirigir a la autenticacion */}

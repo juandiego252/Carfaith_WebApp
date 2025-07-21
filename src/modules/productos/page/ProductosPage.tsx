@@ -2,7 +2,7 @@ import { Plus, Search, MoreHorizontal, Edit, Trash2, Package, Tag } from "lucide
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, Input, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/core/components"
 import { useEffect, useState } from "react"
 import { createProducto, getLineasProductos, getProductos } from "../services/ProductoService";
-import type { LineaDeProducto, ProductoList } from "../../proveedores/types/ProductoType";
+import type { LineaDeProducto, ProductoList } from "../types/ProductoType";
 import { ProductoDialog } from "../components/ProductoDialog";
 
 export const ProductosPage = () => {
