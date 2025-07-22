@@ -3,6 +3,7 @@ import { AuthLayout } from "@/modules/auth/layout/AuthLayout"
 import { LoginPage } from "@/modules/auth/pages/LoginPage"
 import { useAuthStore } from "@/modules/auth/store/AuthStore";
 import { DashboardHomePage } from "@/modules/dashboard/page/DashboardHomePage";
+import { OrdenComprasPage } from "@/modules/ordenCompra/pages/OrdenCompraPage";
 import { ProductosPage } from "@/modules/productos/page/ProductosPage";
 import { ProveedoresPage } from "@/modules/proveedores/page/ProveedoresPage";
 import { lazy, Suspense, useEffect, useState } from "react"
@@ -54,6 +55,7 @@ export const AppRouter = () => {
                     {/*Rutas para los modulos del menu  */}
                     <Route path="productos" element={<ProductosPage />} />
                     <Route path="proveedores" element={<ProveedoresPage />} />
+                    <Route path="ordenes-compra" element={<OrdenComprasPage />} />
                 </Route>
 
                 {/* Ruta por defecto - refirigir a la autenticacion */}

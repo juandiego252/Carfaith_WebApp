@@ -18,7 +18,7 @@ carfaithApi.interceptors.request.use(
             config.headers.Authorization = authHeader.Authorization;
         }
 
-        console.log(authHeader);
+        // console.log(authHeader);
         return config;
     },
     (error) => {

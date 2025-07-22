@@ -49,8 +49,10 @@ export function LoginPage({ className, ...props }: React.ComponentProps<"div">) 
                     <form className="p-6 md:p-8" onSubmit={handleSubmit}>
                         <div className="flex flex-col gap-6">
                             <div className="flex flex-col items-center text-center">
-                                <h1 className="text-2xl font-bold">Welcome back</h1>
-                                <p className="text-balance text-muted-foreground">Login to your admin account</p>
+                                <h1 className="text-3xl font-semibold text-primary mb-2">¡Bienvenido de nuevo!</h1>
+                                <p className="text-sm text-muted-foreground">
+                                    Por favor, inicia sesión con tus credenciales para continuar.
+                                </p>
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="email">Email</Label>
