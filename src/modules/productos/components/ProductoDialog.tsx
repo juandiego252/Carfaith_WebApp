@@ -8,7 +8,7 @@ const productoSchema = z.object({
     idProducto: z.number().optional(),
     codigoProducto: z.string().min(1, "El codigo es requerido"),
     nombre: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
-    lineaDeProducto: z.number().int().positive("Debes seleccionar una línea de Producto")
+    lineaDeProducto: z.number().int().positive("Debes seleccionar una línea de Producto"),
 });
 
 type FormValues = z.infer<typeof productoSchema>
@@ -31,7 +31,7 @@ interface Props {
     onSubmit: (data: FormValues) => void;
 }
 
-export const ProductoDialog = ({ open, onOpenChange, editingProduct, lineasProductos, onSubmit }: Props) => {
+export const ProductoDialog = ({ open, onOpenChange, editingProduct, lineasProductos, onSubmit}: Props) => {
 
     const {
         register,

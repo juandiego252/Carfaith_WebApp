@@ -1,3 +1,4 @@
+import { ProductosProveedoresPage } from "@/modules/asociarPP/page/ProductosProveedoresPage";
 import { PrivateRoute } from "@/modules/auth/components/PrivateRoute";
 import { AuthLayout } from "@/modules/auth/layout/AuthLayout"
 import { LoginPage } from "@/modules/auth/pages/LoginPage"
@@ -56,6 +57,7 @@ export const AppRouter = () => {
                     <Route path="productos" element={<ProductosPage />} />
                     <Route path="proveedores" element={<ProveedoresPage />} />
                     <Route path="ordenes-compra" element={<OrdenComprasPage />} />
+                    <Route path="producto-proveedor" element={<ProductosProveedoresPage />} />
                 </Route>
 
                 {/* Ruta por defecto - refirigir a la autenticacion */}

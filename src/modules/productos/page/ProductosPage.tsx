@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { createProducto, deleteProducto, editProducto, getLineasProductos, getProductos } from "../services/ProductoService";
 import type { EditProductoRequest, LineaDeProducto, ProductoList } from "../types/ProductoType";
 import { ProductoDialog } from "../components/ProductoDialog";
+import { getProveedorDetalles } from "@/modules/proveedores/services/ProveedorService";
 
 export const ProductosPage = () => {
   // Estados para productos y UI
@@ -17,19 +18,22 @@ export const ProductosPage = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<EditProductoRequest | null>(null);
 
+
+
   // Función para cargar productos que podemos reutilizar
   const fetchProductos = async () => {
     try {
       setLoading(true);
       const [productosData, lineasProductoData] = await Promise.all([
         getProductos(),
-        getLineasProductos()
-      ])
+        getLineasProductos(),
+        getProveedorDetalles()
+      ]);
       setProductos(productosData);
       setLineasProducto(lineasProductoData);
       setError(null);
     } catch (err) {
-      setError("Error al cargar los productos");
+      setError("Error al cargar los datos");
       console.error(err);
     } finally {
       setLoading(false);
@@ -45,7 +49,7 @@ export const ProductosPage = () => {
     idProducto?: number,
     codigoProducto: string,
     nombre: string,
-    lineaDeProducto: number
+    lineaDeProducto: number,
   }) => {
     try {
       setIsSubmitting(true);
