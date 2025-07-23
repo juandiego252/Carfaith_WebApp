@@ -12,3 +12,4 @@ export * from './ui/tabs';
 export * from './ui/switch';
 export * from './ui/calendar';
 export * from './ui/checkbox';
+export * from './ui/popover';
