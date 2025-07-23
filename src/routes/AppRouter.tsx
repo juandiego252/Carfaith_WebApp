@@ -5,6 +5,7 @@ import { LoginPage } from "@/modules/auth/pages/LoginPage"
 import { useAuthStore } from "@/modules/auth/store/AuthStore";
 import { DashboardHomePage } from "@/modules/dashboard/page/DashboardHomePage";
 import { OrdenComprasPage } from "@/modules/ordenCompra/pages/OrdenCompraPage";
+import { OrdenIngresoPage } from "@/modules/ordenIngreso/page/OrdenIngresoPage";
 import { ProductosPage } from "@/modules/productos/page/ProductosPage";
 import { ProveedoresPage } from "@/modules/proveedores/page/ProveedoresPage";
 import { lazy, Suspense, useEffect, useState } from "react"
@@ -58,6 +59,7 @@ export const AppRouter = () => {
                     <Route path="proveedores" element={<ProveedoresPage />} />
                     <Route path="ordenes-compra" element={<OrdenComprasPage />} />
                     <Route path="producto-proveedor" element={<ProductosProveedoresPage />} />
+                    <Route path="ordenes-ingreso" element={<OrdenIngresoPage />} />
                 </Route>
 
                 {/* Ruta por defecto - refirigir a la autenticacion */}
