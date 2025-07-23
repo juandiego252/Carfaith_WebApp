@@ -1,6 +1,7 @@
 import carfaithApi from "@/core/api/carfaithApi";
 import type { CreateOrdenComprasRequest, ListOrdenCompras } from "../types/OrdenComprasType";
 import type { ListProveedores } from "@/modules/proveedores/types/ProveedorType";
+import { formatDateLocal } from "@/core/utils/DateFormatter";
 
 export const getOrdenesCompras = async () => {
     try {
@@ -24,12 +25,12 @@ export const getProveedores = async () => {
 
 export const createOrdenCompras = async (data: CreateOrdenComprasRequest) => {
     const formattedDateCreacion = data.fechaCreacion instanceof Date
-        ? data.fechaCreacion.toISOString().split('T')[0]
-        : new Date().toISOString().split('T')[0];
+        ? formatDateLocal(data.fechaCreacion)
+        : formatDateLocal(new Date());
 
     const formattedDateEntrega = data.fechaEstimadaEntrega instanceof Date
-        ? data.fechaEstimadaEntrega.toISOString().split('T')[0]
-        : new Date().toISOString().split('T')[0];
+        ? formatDateLocal(data.fechaEstimadaEntrega)
+        : formatDateLocal(new Date());
 
     try {
         const response = await carfaithApi.post<CreateOrdenComprasRequest>('/OrdenDeCompra/crearOrdenDeCompra', {
@@ -49,17 +50,18 @@ export const createOrdenCompras = async (data: CreateOrdenComprasRequest) => {
 
 export const updateOrdenCompras = async (data: CreateOrdenComprasRequest) => {
     const formattedDateCreacion = data.fechaCreacion instanceof Date
-        ? data.fechaCreacion.toISOString().split('T')[0]
-        : new Date().toISOString().split('T')[0];
+        ? formatDateLocal(data.fechaCreacion)
+        : formatDateLocal(new Date());
 
     const formattedDateEntrega = data.fechaEstimadaEntrega instanceof Date
-        ? data.fechaEstimadaEntrega.toISOString().split('T')[0]
-        : new Date().toISOString().split('T')[0];
+        ? formatDateLocal(data.fechaEstimadaEntrega)
+        : formatDateLocal(new Date());
 
     try {
         const response = await carfaithApi.put<CreateOrdenComprasRequest>('/OrdenDeCompra/EditarOrdenCompra', {
             idOrden: data.idOrden,
             numeroOrden: data.numeroOrden,
+            idProveedor: data.idProveedor,
             archivoPdf: data.archivoPdf,
             estado: data.estado,
             fechaCreacion: formattedDateCreacion,
@@ -81,3 +83,9 @@ export const deleteOrdenCompras = async (idOrden: number) => {
         throw error;
     }
 }
+
+// const formatDateLocal = (date: Date): string => {
+//     const tzOffset = date.getTimezoneOffset() * 60000;
+//     const localISO = new Date(date.getTime() - tzOffset).toISOString().slice(0, 10);
+//     return localISO;
+// };

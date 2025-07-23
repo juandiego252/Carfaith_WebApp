@@ -1,9 +1,12 @@
-import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Input, Label, Select, SelectContent, SelectTrigger, SelectValue, SelectItem, Switch, Textarea } from "@/core/components"
+import { Calendar, Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Input, Label, Select, SelectContent, SelectTrigger, SelectValue, SelectItem } from "@/core/components"
 import { z } from "zod";
+import { Popover, PopoverTrigger, PopoverContent } from "@/core/components/ui/popover";
+import { cn } from "@/lib/utils";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
 import type { CreateOrdenComprasRequest } from "../types/OrdenComprasType";
+import { CalendarIcon } from "lucide-react";
 
 const ordenCompraSchema = z.object({
     idOrden: z.number().optional(),
@@ -11,6 +14,11 @@ const ordenCompraSchema = z.object({
     idProveedor: z.number().int().positive("Debes seleccionar un Proveedor"),
     archivoPdf: z.string().url("Debe ser una URL válida"),
     estado: z.string().min(1, "El estado es requerido"),
+    fechaEstimadaEntrega: z
+        .date()
+        .refine((date) => !!date, {
+            message: "La fecha estimada de entrega es obligatoria",
+        }),
 });
 
 type FormValues = z.infer<typeof ordenCompraSchema>
@@ -42,13 +50,11 @@ export const OrdenCompraDialog = ({ open, onOpenChange, editingOrdenCompra, prov
             idProveedor: 0,
             archivoPdf: "",
             estado: "",
+            fechaEstimadaEntrega: new Date(),
         },
     });
 
-
-    // const selectedTipo = watch("tipoProveedor");
     const estado = watch("estado");
-    const selectedProveedorId = watch("idProveedor");
 
     useEffect(() => {
         if (open && editingOrdenCompra) {
@@ -57,6 +63,7 @@ export const OrdenCompraDialog = ({ open, onOpenChange, editingOrdenCompra, prov
             setValue("idProveedor", editingOrdenCompra.idProveedor);
             setValue("archivoPdf", editingOrdenCompra.archivoPdf);
             setValue("estado", editingOrdenCompra.estado);
+            setValue("fechaEstimadaEntrega", new Date(editingOrdenCompra.fechaEstimadaEntrega));
         } else if (!open) {
             reset();
         }
@@ -66,7 +73,7 @@ export const OrdenCompraDialog = ({ open, onOpenChange, editingOrdenCompra, prov
         const formattedData = {
             ...data,
             fechaCreacion: editingOrdenCompra?.fechaCreacion || new Date(),
-            fechaEstimadaEntrega: editingOrdenCompra?.fechaEstimadaEntrega || new Date()
+            fechaEstimadaEntrega: data.fechaEstimadaEntrega,
         };
         onSubmit(formattedData);
         onOpenChange(false);
@@ -151,12 +158,43 @@ export const OrdenCompraDialog = ({ open, onOpenChange, editingOrdenCompra, prov
                                         <SelectValue placeholder="Selecciona el estado" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="en_proceso">En proceso</SelectItem>
-                                        <SelectItem value="entregado">Entregado</SelectItem>
+                                        <SelectItem value="En Proceso">En proceso</SelectItem>
+                                        <SelectItem value="Entregado">Entregado</SelectItem>
                                     </SelectContent>
                                 </Select>
                                 {errors.estado && (
                                     <p className="text-sm text-red-500">{errors.estado.message}</p>
+                                )}
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="fechaEstimadaEntrega">Fecha estimada de entrega *</Label>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            variant="outline"
+                                            className={cn(
+                                                "w-full justify-start text-left font-normal",
+                                                !watch("fechaEstimadaEntrega") && "text-muted-foreground"
+                                            )}
+                                        >
+                                            <CalendarIcon className="mr-2 h-4 w-4" />
+                                            {watch("fechaEstimadaEntrega")
+                                                ? new Date(watch("fechaEstimadaEntrega")).toISOString().split("T")[0]
+                                                : "Selecciona una fecha"}
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0" align="start">
+                                        <Calendar
+                                            mode="single"
+                                            selected={watch("fechaEstimadaEntrega")}
+                                            onSelect={(date) => date && setValue("fechaEstimadaEntrega", date)}
+                                            disabled={{ before: new Date() }}
+                                        />
+                                    </PopoverContent>
+                                </Popover>
+                                {errors.fechaEstimadaEntrega && (
+                                    <p className="text-sm text-red-500">{errors.fechaEstimadaEntrega.message}</p>
                                 )}
                             </div>
                         </div>

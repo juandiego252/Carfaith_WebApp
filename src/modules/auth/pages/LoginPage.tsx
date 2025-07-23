@@ -9,6 +9,7 @@ import { Label } from "@/core/components/ui/label"
 import logoCarfaith from "../../../assets/logo-carfaith.png";
 import React, { useState } from "react"
 import { Login } from "../services/AuthService"
+import axios from "axios"
 
 export function LoginPage({ className, ...props }: React.ComponentProps<"div">) {
     const navigate = useNavigate();
@@ -33,8 +34,16 @@ export function LoginPage({ className, ...props }: React.ComponentProps<"div">) 
                 }
             }
         } catch (error: unknown) {
-            const errorMessage = error instanceof Error ? error.message : 'Error al iniciar sesión. Inténtalo de nuevo.';
-            setError(errorMessage);
+            if (axios.isAxiosError(error) && error.response) {
+                if (error.response.status === 401) {
+                    setError('Correo o contraseña incorrectos');
+                } else {
+                    setError('Error al iniciar sesión. Inténtalo de nuevo.');
+                }
+            } else {
+                const errorMessage = error instanceof Error ? error.message : 'Error al iniciar sesión. Inténtalo de nuevo.';
+                setError(errorMessage);
+            }
             console.error("Error en login:", error);
         } finally {
             setisLoading(false);

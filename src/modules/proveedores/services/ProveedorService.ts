@@ -1,5 +1,6 @@
 import carfaithApi from "@/core/api/carfaithApi"
 import type { CreateProveedorRequest, ListProveedores } from "../types/ProveedorType";
+import { formatDateLocal } from "@/core/utils/DateFormatter";
 
 
 export const getProveedorDetalles = async () => {
@@ -15,8 +16,9 @@ export const getProveedorDetalles = async () => {
 
 export const createProveedor = async (data: CreateProveedorRequest) => {
     const formattedDate = data.fechaRegistro instanceof Date
-        ? data.fechaRegistro.toISOString().split('T')[0]
-        : new Date().toISOString().split('T')[0];
+        ? formatDateLocal(data.fechaRegistro)
+        : formatDateLocal(new Date());
+
     try {
         const response = await carfaithApi.post<CreateProveedorRequest>('Proveedores/CrearProveedor', {
             nombreProveedor: data.nombreProveedor,
@@ -39,8 +41,9 @@ export const createProveedor = async (data: CreateProveedorRequest) => {
 
 export const editProveedor = async (data: CreateProveedorRequest) => {
     const formattedDate = data.fechaRegistro instanceof Date
-        ? data.fechaRegistro.toISOString().split('T')[0]
-        : new Date().toISOString().split('T')[0];
+        ? formatDateLocal(data.fechaRegistro)
+        : formatDateLocal(new Date());
+
     try {
         const response = await carfaithApi.put<CreateProveedorRequest>('/Proveedores/ActualizarProveedor', {
             idProveedor: data.idProveedor,

@@ -1,5 +1,5 @@
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/core/components"
-import { Building2, Search, Filter, MoreHorizontal, Eye, Edit, Trash2, Plus, MapPin } from "lucide-react"
+import { Building2, Search, MoreHorizontal, Edit, Trash2, Plus, MapPin } from "lucide-react"
 import { useEffect, useState } from "react"
 import type { CreateOrdenComprasRequest, ListOrdenCompras } from "../types/OrdenComprasType";
 import { createOrdenCompras, deleteOrdenCompras, getOrdenesCompras, getProveedores, updateOrdenCompras } from "../services/OrdenCompraService";
@@ -12,7 +12,6 @@ export const OrdenComprasPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("")
-  const [selectedTipo, setSelectedTipo] = useState("all")
   const [selectedEstado, setSelectedEstado] = useState("all")
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -49,6 +48,7 @@ export const OrdenComprasPage = () => {
     idProveedor?: number;
     archivoPdf: string;
     estado: string;
+    fechaEstimadaEntrega: Date;
   }) => {
     try {
       setIsSubmitting(true);
@@ -59,7 +59,7 @@ export const OrdenComprasPage = () => {
         archivoPdf: data.archivoPdf,
         estado: data.estado,
         fechaCreacion: new Date(),
-        fechaEstimadaEntrega: new Date()
+        fechaEstimadaEntrega: data.fechaEstimadaEntrega
       };
       if (data.idOrden && data.idOrden > 0) {
         await updateOrdenCompras(ordenData);
@@ -79,6 +79,7 @@ export const OrdenComprasPage = () => {
   }
 
   const handleEditOrdenCompra = (ordenCompra: ListOrdenCompras) => {
+    console.log(ordenCompra.fechaEstimadaEntrega)
     setEditingOrdenCompra({
       idOrden: ordenCompra.idOrden,
       numeroOrden: ordenCompra.numeroOrden,
@@ -91,11 +92,10 @@ export const OrdenComprasPage = () => {
     setIsDialogOpen(true);
   }
 
-  const handleDeleteOrdenCompra = async (idProveedor: number) => {
-
+  const handleDeleteOrdenCompra = async (idOrden: number) => {
     try {
       setIsSubmitting(true);
-      await deleteOrdenCompras(idProveedor);
+      await deleteOrdenCompras(idOrden);
       await fetchOrdenesCompras();
       setError(null);
     } catch (error) {
@@ -114,13 +114,10 @@ export const OrdenComprasPage = () => {
       orden.nombreProveedor.toLowerCase().includes(searchTerm.toLowerCase()) ||
       orden.numeroOrden.toLowerCase().includes(searchTerm.toLowerCase());
 
-    // Filtrar por tipo
-    // const tipoFilter = selectedTipo === 'all' || orden.tipoProveedor === selectedTipo;
-
     // Filtrar por estado
     const estadoFilter = selectedEstado === 'all' ||
-      (selectedEstado === 'entregado' && orden.estado) ||
-      (selectedEstado === 'en proceso' && !orden.estado);
+      (selectedEstado === 'Entregado' && orden.estado === 'Entregado') ||
+      (selectedEstado === 'En Proceso' && orden.estado === 'En Proceso');
 
     return searchFilter && estadoFilter;
   });
@@ -200,8 +197,8 @@ export const OrdenComprasPage = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="entregado">Entregados</SelectItem>
-                <SelectItem value="en proceso">En Proceso</SelectItem>
+                <SelectItem value="Entregado">Entregados</SelectItem>
+                <SelectItem value="En Proceso">En Proceso</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -253,12 +250,16 @@ export const OrdenComprasPage = () => {
                         )}
                       </TableCell>
                       <TableCell>
-                        <Badge variant={orden.estado ? "default" : "secondary"}>
-                          {orden.estado ? "Entregado" : "En Proceso"}
+                        <Badge>
+                          {orden.estado}
                         </Badge>
                       </TableCell>
-                      <TableCell>{new Date(orden.fechaCreacion).toLocaleDateString()}</TableCell>
-                      <TableCell>{new Date(orden.fechaEstimadaEntrega).toLocaleDateString()}</TableCell>
+                      <TableCell>
+                        {orden.fechaCreacion.toString().slice(0, 10)}
+                      </TableCell>
+                      <TableCell>
+                        {orden.fechaEstimadaEntrega.toString().slice(0, 10)}
+                      </TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -268,10 +269,6 @@ export const OrdenComprasPage = () => {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                            <DropdownMenuItem>
-                              <Eye className="mr-2 h-4 w-4" />
-                              Ver detalles
-                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleEditOrdenCompra(orden)}>
                               <Edit className="mr-2 h-4 w-4" />
                               Editar
