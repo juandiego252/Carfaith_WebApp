@@ -13,7 +13,7 @@ export interface LineaDeProducto {
 }
 
 export interface CreateProductoRequest {
-    codigoProducto: string,
+    codigoProducto?: string,
     nombre: string,
     lineaDeProducto: number
 }

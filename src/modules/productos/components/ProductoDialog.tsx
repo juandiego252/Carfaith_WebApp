@@ -6,7 +6,7 @@ import { useEffect } from "react";
 
 const productoSchema = z.object({
     idProducto: z.number().optional(),
-    codigoProducto: z.string().min(1, "El codigo es requerido"),
+    codigoProducto: z.string().optional(),
     nombre: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
     lineaDeProducto: z.number().int().positive("Debes seleccionar una línea de Producto"),
 });
@@ -31,7 +31,7 @@ interface Props {
     onSubmit: (data: FormValues) => void;
 }
 
-export const ProductoDialog = ({ open, onOpenChange, editingProduct, lineasProductos, onSubmit}: Props) => {
+export const ProductoDialog = ({ open, onOpenChange, editingProduct, lineasProductos, onSubmit }: Props) => {
 
     const {
         register,
@@ -93,19 +93,21 @@ export const ProductoDialog = ({ open, onOpenChange, editingProduct, lineasProdu
 
                 <form onSubmit={handleFormSubmit}>
                     <div className="grid gap-4 py-4">
-                        <div className="grid gap-2">
-                            <Label htmlFor="codigo">Código del Producto</Label>
-                            <Input
-                                id="codigo"
-                                placeholder="PROD-001"
-                                {...register("codigoProducto")}
-                            />
-                            {
-                                errors.codigoProducto && (
+                        {editingProduct && (
+                            <div className="grid gap-2">
+                                <Label htmlFor="codigo">Código del Producto</Label>
+                                <Input
+                                    id="codigo"
+                                    placeholder="PROD-001"
+                                    {...register("codigoProducto")}
+                                    disabled={true}
+                                    className="bg-gray-100 text-gray-700"
+                                />
+                                {errors.codigoProducto && (
                                     <p className="text-sm text-red-500">{errors.codigoProducto.message}</p>
-                                )
-                            }
-                        </div>
+                                )}
+                            </div>
+                        )}
 
                         <div className="grid gap-2">
                             <Label htmlFor="nombre">Nombre del Producto</Label>

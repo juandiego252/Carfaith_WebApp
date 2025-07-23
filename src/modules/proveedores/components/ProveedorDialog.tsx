@@ -16,10 +16,20 @@ const proveedorSchema = z.object({
     nombreProveedor: z.string().min(1, "El nombre es requerido"),
     paisOrigen: z.string().min(1, "El país de origen es requerido"),
     tipoProveedor: z.string().min(1, "El tipo de proveedor es requerido"),
-    telefono: z.string().optional(),
-    email: z.email("Email inválido").optional().or(z.literal('')),
+    telefono: z.string()
+        .refine(val => val === '' || /^\d+$/.test(val), {
+            message: "El teléfono debe contener solo números"
+        }),
+    email: z.string()
+        .email("Email inválido")
+        .optional()
+        .or(z.literal('')),
     personaContacto: z.string().optional(),
-    ruc: z.string().min(1, "El RUC es requerido"),
+    ruc: z.string()
+        .min(1, "El RUC es requerido")
+        .refine(val => /^\d+$/.test(val), {
+            message: "El RUC debe contener solo números"
+        }),
     direccion: z.string().optional(),
     estado: z.boolean(),
 })
