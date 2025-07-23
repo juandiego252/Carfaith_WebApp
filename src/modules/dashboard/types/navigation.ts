@@ -7,7 +7,8 @@ import {
     TrendingUp,
     Truck,
     Package2,
-    Group
+    Group,
+    LineChart
 } from "lucide-react"
 
 export interface MenuItem {
@@ -26,6 +27,7 @@ export const menuItems: MenuItem[] = [
     { icon: Truck, label: "Órdenes de Egreso", href: "/dashboard/ordenes-egreso" },
     // { icon: Box, label: "Inventario", href: "/dashboard/inventario" },
     { icon: TrendingUp, label: "Transferencias", href: "/dashboard/transferencias" },
+    { icon: LineChart, label: "Precios Historicos", href: "/dashboard/precios-historicos" },
     { icon: MapPin, label: "Ubicaciones", href: "/dashboard/ubicaciones" },
     // { icon: BarChart3, label: "Reportes", href: "/dashboard/reportes" },
     // { icon: Users, label: "Usuarios", href: "/dashboard/usuarios" },

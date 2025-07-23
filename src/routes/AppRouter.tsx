@@ -5,8 +5,11 @@ import { LoginPage } from "@/modules/auth/pages/LoginPage"
 import { useAuthStore } from "@/modules/auth/store/AuthStore";
 import { DashboardHomePage } from "@/modules/dashboard/page/DashboardHomePage";
 import { OrdenComprasPage } from "@/modules/ordenCompra/pages/OrdenCompraPage";
+import { PreciosHistoricosPage } from "@/modules/preciosHistoricos/pages/PreciosHistoricosPage";
 import { ProductosPage } from "@/modules/productos/page/ProductosPage";
 import { ProveedoresPage } from "@/modules/proveedores/page/ProveedoresPage";
+import { TransferenciasPage } from "@/modules/transferencias/pages/TransferenciasPage";
+import { UbicacionesPage } from "@/modules/ubicaciones/pages/UbicacionesPage";
 import { lazy, Suspense, useEffect, useState } from "react"
 import { BrowserRouter, Navigate, Route, Routes } from "react-router"
 
@@ -58,6 +61,9 @@ export const AppRouter = () => {
                     <Route path="proveedores" element={<ProveedoresPage />} />
                     <Route path="ordenes-compra" element={<OrdenComprasPage />} />
                     <Route path="producto-proveedor" element={<ProductosProveedoresPage />} />
+                    <Route path="transferencias" element={<TransferenciasPage />} />
+                    <Route path="precios-historicos" element={<PreciosHistoricosPage />} />
+                    <Route path="ubicaciones" element={<UbicacionesPage />} />
                 </Route>
 
                 {/* Ruta por defecto - refirigir a la autenticacion */}

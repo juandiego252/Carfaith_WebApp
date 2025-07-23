@@ -83,7 +83,7 @@ export const OrdenCompraDialog = ({ open, onOpenChange, editingOrdenCompra, prov
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle>{editingOrdenCompra ? "Editar Orden de Compra" : "Nuevo Orden de Compra"}</DialogTitle>
+                    <DialogTitle>{editingOrdenCompra ? "Editar Orden de Compra" : "Nueva Orden de Compra"}</DialogTitle>
                     <DialogDescription>
                         {editingOrdenCompra
                             ? "Modifica la información de la Orden de Compra"
