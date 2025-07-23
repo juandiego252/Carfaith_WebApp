@@ -7,8 +7,6 @@ import { DashboardHomePage } from "@/modules/dashboard/page/DashboardHomePage";
 import { OrdenComprasPage } from "@/modules/ordenCompra/pages/OrdenCompraPage";
 import { ProductosPage } from "@/modules/productos/page/ProductosPage";
 import { ProveedoresPage } from "@/modules/proveedores/page/ProveedoresPage";
-import { TransferenciasPage } from "@/modules/transferencias/pages/TransferenciasPage";
-import { UbicacionesPage } from "@/modules/ubicaciones/pages/UbicacionesPage";
 import { lazy, Suspense, useEffect, useState } from "react"
 import { BrowserRouter, Navigate, Route, Routes } from "react-router"
 
