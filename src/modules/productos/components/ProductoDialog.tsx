@@ -27,11 +27,23 @@ interface Props {
     lineasProductos: {
         id: number,
         nombreLineaProducto: string
-    }[]
-    onSubmit: (data: FormValues) => void;
+    }[];
+    productos: {
+        id?: number,
+        codigoProducto: string,
+        nombreProducto: string,
+        idLineaProdcuto?: number,
+        nombreLineaProducto?: string
+    }[];
+    onSubmit: (data: {
+        idProducto?: number;
+        codigoProducto?: string;
+        nombre: string;
+        lineaDeProducto: number;
+    }) => void;
 }
 
-export const ProductoDialog = ({ open, onOpenChange, editingProduct, lineasProductos, onSubmit }: Props) => {
+export const ProductoDialog = ({ open, onOpenChange, editingProduct, lineasProductos, onSubmit, productos }: Props) => {
 
     const {
         register,
@@ -68,9 +80,32 @@ export const ProductoDialog = ({ open, onOpenChange, editingProduct, lineasProdu
     const selectedLineaId = watch("lineaDeProducto");
 
     const handleFormSubmit = handleSubmit((data) => {
+        // Verificar si existe un producto con el mismo nombre (solo cuando se crea un nuevo producto)
+        if (!editingProduct) {
+            const productoExistente = productos.find(
+                prod => prod.nombreProducto.toLowerCase() === data.nombre.toLowerCase()
+            );
+
+            if (productoExistente) {
+                // Mostrar error y detener el envío
+
+                alert(`El producto "${data.nombre}" ya existe.`);
+                return;
+            }
+        } else {
+            // Al editar, verificar que no exista otro producto con el mismo nombre
+            const otroProductoConMismoNombre = productos.find(
+                prod => prod.nombreProducto.toLowerCase() === data.nombre.toLowerCase() &&
+                    prod.id !== editingProduct.id
+            );
+            if (otroProductoConMismoNombre) {
+                alert(`Ya existe otro producto llamado "${data.nombre}".`);
+                return;
+            }
+        }
         const formattedData = {
             idProducto: data.idProducto,
-            codigoProducto: data.codigoProducto,
+            codigoProducto: editingProduct ? editingProduct.codigoProducto : undefined,
             nombre: data.nombre,
             lineaDeProducto: data.lineaDeProducto
         }
@@ -124,7 +159,7 @@ export const ProductoDialog = ({ open, onOpenChange, editingProduct, lineasProdu
                         <div className="grid gap-2">
                             <Label htmlFor="linea">Línea de Producto</Label>
                             <Select
-                                value={selectedLineaId?.toString() || ""}
+                                value={selectedLineaId ? selectedLineaId.toString() : ""}
                                 onValueChange={(value) => setValue("lineaDeProducto", parseInt(value, 10))}
                             >
                                 <SelectTrigger>

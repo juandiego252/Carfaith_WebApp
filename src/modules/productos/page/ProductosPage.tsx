@@ -47,7 +47,7 @@ export const ProductosPage = () => {
   // Manejar envío del formulario
   const handleSubmit = async (data: {
     idProducto?: number,
-    codigoProducto: string,
+    codigoProducto?: string,
     nombre: string,
     lineaDeProducto: number,
   }) => {
@@ -57,13 +57,13 @@ export const ProductosPage = () => {
       if (data.idProducto) {
         await editProducto({
           idProducto: data.idProducto,
-          codigoProducto: data.codigoProducto,
+          codigoProducto: data.codigoProducto || '',
           nombre: data.nombre,
           lineaDeProducto: data.lineaDeProducto
         });
       } else {
         await createProducto({
-          codigoProducto: data.codigoProducto,
+          codigoProducto: data.codigoProducto || '',
           nombre: data.nombre,
           lineaDeProducto: data.lineaDeProducto
         });
@@ -267,6 +267,7 @@ export const ProductosPage = () => {
           idLineaProdcuto: editingProduct.lineaDeProducto
         } : null}
         lineasProductos={lineasProducto.map(l => ({ id: l.idLinea, nombreLineaProducto: l.nombre }))}
+        productos={productos}
         onSubmit={handleSubmit}
       />
     </div>
