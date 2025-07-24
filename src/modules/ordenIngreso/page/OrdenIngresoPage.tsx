@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { OrdenIngresoDialog } from '../components/OrdenIngresoDialog'
 import type { CreateOrdenIngresoDetalleRequest } from '../types/OrdenIngresoTypes'
 import { useOrdenIngresoData } from '../hooks/useOrdenIngresoData'
+import { createOrdenIngresoDetalles } from '../services/OrdenIngresoService'
 
 
 export const OrdenIngresoPage = () => {
@@ -40,7 +41,7 @@ export const OrdenIngresoPage = () => {
             setIsSubmitting(true);
             setError(null);
 
-            await createOrdenIngreso(data);
+            await createOrdenIngresoDetalles(data);
 
             // Close the dialog and reset form
             setIsCreateDialogOpen(false);
