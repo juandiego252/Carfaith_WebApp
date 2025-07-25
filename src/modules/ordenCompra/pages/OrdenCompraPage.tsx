@@ -44,7 +44,7 @@ export const OrdenComprasPage = () => {
 
   const handleSubmit = async (data: {
     idOrden?: number;
-    numeroOrden: string;
+    numeroOrden?: string;
     idProveedor?: number;
     archivoPdf: string;
     estado: string;
@@ -79,7 +79,6 @@ export const OrdenComprasPage = () => {
   }
 
   const handleEditOrdenCompra = (ordenCompra: ListOrdenCompras) => {
-    console.log(ordenCompra.fechaEstimadaEntrega)
     setEditingOrdenCompra({
       idOrden: ordenCompra.idOrden,
       numeroOrden: ordenCompra.numeroOrden,

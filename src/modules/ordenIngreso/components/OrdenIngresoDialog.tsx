@@ -1,6 +1,6 @@
-import { Button, Card, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Input, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Separator } from '@/core/components'
+import { Button, Calendar, Card, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Input, Label, Popover, PopoverContent, PopoverTrigger, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Separator } from '@/core/components'
 import type { ListOrdenCompras } from '@/modules/ordenCompra/types/OrdenComprasType';
-import { Plus, Package2, X } from 'lucide-react'
+import { Plus, Package2, X, CalendarIcon } from 'lucide-react'
 import type { CreateOrdenIngresoDetalleRequest, ListUbicaciones } from '../types/OrdenIngresoTypes';
 import { useEffect, useState } from 'react';
 import type { ProductoProveedorDetalles } from '@/modules/asociarPP/types/ProductoProveedorTypes';
@@ -8,6 +8,7 @@ import type { ProductoProveedorDetalles } from '@/modules/asociarPP/types/Produc
 import { z } from "zod";
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { cn } from '@/lib/utils';
 
 
 const origenCompra = [
@@ -27,7 +28,12 @@ const detalleSchema = z.object({
 
 const ordenIngresoSchema = z.object({
     idOrdenCompra: z.string().min(1, "Selecciona una orden de compra"),
-    fecha: z.string().min(1, "Fecha requerida"),
+    // fecha: z.string().min(1, "Fecha requerida"),
+    fecha: z
+        .date()
+        .refine((date) => !!date, {
+            message: "La fecha es obligatoria",
+        }),
     origenCompra: z.string().min(1, "Origen requerido"),
     estado: z.string().min(1, "Estado requerido"),
     detalles: z.array(detalleSchema).min(1, "Agrega al menos un producto"),
@@ -54,7 +60,8 @@ export const OrdenIngresoDialog = ({ open, onOpenChange, editingOrden, ordenesCo
         resolver: zodResolver(ordenIngresoSchema),
         defaultValues: {
             idOrdenCompra: "",
-            fecha: new Date().toISOString().split('T')[0],
+            // fecha: new Date().toISOString().split('T')[0],
+            fecha: new Date(),
             origenCompra: "",
             estado: "pendiente",
             detalles: []
@@ -75,7 +82,8 @@ export const OrdenIngresoDialog = ({ open, onOpenChange, editingOrden, ordenesCo
         if (open && !editingOrden) {
             reset({
                 idOrdenCompra: "",
-                fecha: new Date().toISOString().split('T')[0],
+                // fecha: new Date().toISOString().split('T')[0],
+                fecha: new Date(),
                 origenCompra: "",
                 estado: "pendiente",
                 detalles: []
@@ -105,7 +113,8 @@ export const OrdenIngresoDialog = ({ open, onOpenChange, editingOrden, ordenesCo
             setIsSubmitting(true);
             const formattedData: CreateOrdenIngresoDetalleRequest = {
                 idOrdenCompra: parseInt(data.idOrdenCompra),
-                fecha: new Date(data.fecha),
+                // fecha: new Date(data.fecha),
+                fecha: data.fecha,
                 origenDeCompra: data.origenCompra,
                 estado: data.estado,
                 detalles: data.detalles.map(detalle => ({
@@ -181,12 +190,36 @@ export const OrdenIngresoDialog = ({ open, onOpenChange, editingOrden, ordenesCo
 
                             <div className="space-y-2">
                                 <Label htmlFor="fecha" className="text-sm font-medium">Fecha de Ingreso *</Label>
-                                <Input
+                                {/* <Input
                                     id="fecha"
                                     type="date"
                                     className="w-full"
                                     {...register("fecha")}
-                                />
+                                /> */}
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            variant="outline"
+                                            className={cn(
+                                                "w-full justify-start text-left font-normal",
+                                                !watch("fecha") && "text-muted-foreground"
+                                            )}
+                                        >
+                                            <CalendarIcon className="mr-2 h-4 w-4" />
+                                            {watch("fecha")
+                                                ? new Date(watch("fecha")).toISOString().split("T")[0]
+                                                : "Selecciona una fecha"}
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0" align="start">
+                                        <Calendar
+                                            mode="single"
+                                            selected={watch("fecha")}
+                                            onSelect={(date) => date && setValue("fecha", date)}
+                                            disabled={{ before: new Date() }}
+                                        />
+                                    </PopoverContent>
+                                </Popover>
                                 {errors.fecha && (
                                     <p className="text-sm text-red-500">{errors.fecha.message}</p>
                                 )}

@@ -11,7 +11,7 @@ export interface ListOrdenCompras {
 
 export interface CreateOrdenComprasRequest {
   idOrden: number;
-  numeroOrden: string;
+  numeroOrden?: string;
   idProveedor: number;
   archivoPdf: string;
   estado: string;

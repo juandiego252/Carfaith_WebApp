@@ -10,7 +10,7 @@ import { CalendarIcon } from "lucide-react";
 
 const ordenCompraSchema = z.object({
     idOrden: z.number().optional(),
-    numeroOrden: z.string().min(1, "El número de orden es requerido"),
+    numeroOrden: z.string().optional(),
     idProveedor: z.number().int().positive("Debes seleccionar un Proveedor"),
     archivoPdf: z.string().url("Debe ser una URL válida"),
     estado: z.string().min(1, "El estado es requerido"),
@@ -31,7 +31,8 @@ interface Props {
         idProveedor: number,
         nombreProveedor: string
     }[];
-    onSubmit: (data: FormValues) => void;
+    // onSubmit: (data: FormValues) => void;
+    onSubmit: (data: Omit<FormValues, "numeroOrden"> & { numeroOrden?: string }) => void;
 }
 
 export const OrdenCompraDialog = ({ open, onOpenChange, editingOrdenCompra, proveedores, onSubmit }: Props) => {
@@ -58,12 +59,30 @@ export const OrdenCompraDialog = ({ open, onOpenChange, editingOrdenCompra, prov
 
     useEffect(() => {
         if (open && editingOrdenCompra) {
-            setValue("idOrden", editingOrdenCompra.idOrden);
-            setValue("numeroOrden", editingOrdenCompra.numeroOrden);
-            setValue("idProveedor", editingOrdenCompra.idProveedor);
-            setValue("archivoPdf", editingOrdenCompra.archivoPdf);
-            setValue("estado", editingOrdenCompra.estado);
-            setValue("fechaEstimadaEntrega", new Date(editingOrdenCompra.fechaEstimadaEntrega));
+            // Explicitly type editingOrdenCompra for better type inference
+            const currentOrdenCompra = editingOrdenCompra as CreateOrdenComprasRequest;
+            setValue("idOrden", currentOrdenCompra.idOrden);
+            setValue("numeroOrden", currentOrdenCompra.numeroOrden);
+            setValue("idProveedor", currentOrdenCompra.idProveedor);
+            setValue("archivoPdf", currentOrdenCompra.archivoPdf);
+            setValue("estado", currentOrdenCompra.estado);
+            // setValue("fechaEstimadaEntrega", new Date(currentOrdenCompra.fechaEstimadaEntrega));
+            if (currentOrdenCompra.fechaEstimadaEntrega) {
+                let localDate: Date;
+
+                if (typeof currentOrdenCompra.fechaEstimadaEntrega === "string") {
+                    const [year, month, day] = (currentOrdenCompra.fechaEstimadaEntrega as string).split("-").map(Number);
+                    localDate = new Date(year, month - 1, day);
+                } else {
+                    localDate = new Date(
+                        (currentOrdenCompra.fechaEstimadaEntrega as Date).getFullYear(),
+                        (currentOrdenCompra.fechaEstimadaEntrega as Date).getMonth(),
+                        (currentOrdenCompra.fechaEstimadaEntrega as Date).getDate()
+                    );
+                }
+
+                setValue("fechaEstimadaEntrega", localDate);
+            }
         } else if (!open) {
             reset();
         }
@@ -78,6 +97,7 @@ export const OrdenCompraDialog = ({ open, onOpenChange, editingOrdenCompra, prov
         onSubmit(formattedData);
         onOpenChange(false);
     });
+
     return (
 
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -95,17 +115,21 @@ export const OrdenCompraDialog = ({ open, onOpenChange, editingOrdenCompra, prov
                     <div className="grid gap-6 py-4">
                         {/* Información básica */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="grid gap-2">
-                                <Label htmlFor="numeroOrden">Número de Orden *</Label>
-                                <Input
-                                    id="numeroOrden"
-                                    placeholder="Número de Orden"
-                                    {...register("numeroOrden")}
-                                />
-                                {errors.numeroOrden && (
-                                    <p className="text-sm text-red-500">{errors.numeroOrden.message}</p>
-                                )}
-                            </div>
+                            {editingOrdenCompra && (
+                                <div className="grid gap-2">
+                                    <Label htmlFor="numeroOrden">Número de Orden *</Label>
+                                    <Input
+                                        id="numeroOrden"
+                                        placeholder="ORDN-001"
+                                        {...register("numeroOrden")}
+                                        disabled={true}
+                                        className="bg-gray-100 text-gray-700"
+                                    />
+                                    {errors.numeroOrden && (
+                                        <p className="text-sm text-red-500">{errors.numeroOrden.message}</p>
+                                    )}
+                                </div>
+                            )}
 
                             <div className="grid gap-2">
                                 <Label htmlFor="idProveedor">Proveedor *</Label>
@@ -140,7 +164,7 @@ export const OrdenCompraDialog = ({ open, onOpenChange, editingOrdenCompra, prov
                                 <Label htmlFor="archivoPdf">Archivo PDF *</Label>
                                 <Input
                                     id="archivoPdf"
-                                    placeholder="20123456789"
+                                    placeholder="https://ejemplo.com/archivo.pdf"
                                     {...register("archivoPdf")}
                                 />
                                 {errors.archivoPdf && (

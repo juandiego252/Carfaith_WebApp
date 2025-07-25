@@ -17,16 +17,17 @@ const proveedorSchema = z.object({
     paisOrigen: z.string().min(1, "El país de origen es requerido"),
     tipoProveedor: z.string().min(1, "El tipo de proveedor es requerido"),
     telefono: z.string()
-        .refine(val => val === '' || /^\d+$/.test(val), {
-            message: "El teléfono debe contener solo números"
+        .refine(val => val === '' || /^\+?\d+$/.test(val), {
+            message: "El teléfono debe contener solo números y puede iniciar con +"
         }),
-    email: z.string()
+    email: z
+        .string()
         .email("Email inválido")
-        .optional()
-        .or(z.literal('')),
+        .or(z.literal(''))
+        .optional(),
     personaContacto: z.string().optional(),
     ruc: z.string()
-        .min(1, "El RUC es requerido")
+        .min(13, "El RUC es requerido")
         .refine(val => /^\d+$/.test(val), {
             message: "El RUC debe contener solo números"
         }),
@@ -128,8 +129,36 @@ export const ProveedorDialog = ({ open, onOpenChange, editingProveedor, onSubmit
                                 <Label htmlFor="ruc">RUC *</Label>
                                 <Input
                                     id="ruc"
+                                    type="text"
                                     placeholder="20123456789"
-                                    {...register("ruc")}
+                                    maxLength={13} // Para evitar que se escriban más de 13 caracteres
+                                    {...register("ruc", {
+                                        required: "El RUC es obligatorio",
+                                        pattern: {
+                                            value: /^\d+$/,
+                                            message: "Solo se permiten números",
+                                        },
+                                        minLength: {
+                                            value: 1,
+                                            message: "Mínimo 1 dígito",
+                                        },
+                                        maxLength: {
+                                            value: 13,
+                                            message: "Máximo 13 dígitos",
+                                        },
+                                    })}
+                                    onKeyDown={(e) => {
+                                        if (
+                                            !/[0-9]/.test(e.key) &&
+                                            e.key !== "Backspace" &&
+                                            e.key !== "Delete" &&
+                                            e.key !== "ArrowLeft" &&
+                                            e.key !== "ArrowRight" &&
+                                            e.key !== "Tab"
+                                        ) {
+                                            e.preventDefault();
+                                        }
+                                    }}
                                 />
                                 {errors.ruc && (
                                     <p className="text-sm text-red-500">{errors.ruc.message}</p>
@@ -183,8 +212,35 @@ export const ProveedorDialog = ({ open, onOpenChange, editingProveedor, onSubmit
                                 <Label htmlFor="telefono">Teléfono</Label>
                                 <Input
                                     id="telefono"
-                                    placeholder="+51-1-234-5678"
-                                    {...register("telefono")}
+                                    type="text"
+                                    placeholder="+51123456789"
+                                    maxLength={16}
+                                    {...register("telefono", {
+                                        required: "El teléfono es obligatorio",
+                                        pattern: {
+                                            value: /^\+?\d*$/, // + opcional al inicio, luego sólo dígitos
+                                            message: "Solo números y un + al inicio",
+                                        },
+                                    })}
+                                    onKeyDown={(e) => {
+                                        const allowedKeys = [
+                                            "Backspace",
+                                            "Delete",
+                                            "ArrowLeft",
+                                            "ArrowRight",
+                                            "Tab",
+                                        ];
+                                        if (
+                                            !/[0-9]/.test(e.key) &&
+                                            e.key !== "+" &&
+                                            !allowedKeys.includes(e.key)
+                                        ) {
+                                            e.preventDefault();
+                                        }
+                                        if (e.key === "+" && e.currentTarget.selectionStart !== 0) {
+                                            e.preventDefault();
+                                        }
+                                    }}
                                 />
                                 {errors.telefono && (
                                     <p className="text-sm text-red-500">{errors.telefono.message}</p>
