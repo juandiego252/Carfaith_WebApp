@@ -1,6 +1,6 @@
 import carfaithApi from "@/core/api/carfaithApi";
 import { formatDateLocal } from "@/core/utils/DateFormatter";
-import { type CreatePreciosHistoricosRequest, type ListPreciosHistoricos, type ListProductoProveedor } from "../types/PreciosHistoricosTypes";
+import { type CreatePreciosHistoricosRequest, type ListPreciosHistoricos } from "../types/PreciosHistoricosTypes";
 
 export const getPreciosHistoricos = async () => {
     try {
@@ -8,16 +8,6 @@ export const getPreciosHistoricos = async () => {
         return response.data;
     } catch (error) {
         console.error("Error Listando los Precios Históricos: ", error);
-        throw error;
-    }
-}
-
-export const getProductoProveedor = async () => {
-    try {
-        const response = await carfaithApi.get<ListProductoProveedor[]>('/ProductoProveedor/ListarDetalleProductoProveedor');
-        return response.data;
-    } catch (error) {
-        console.error("Error Listando los Productos Proveedor: ", error);
         throw error;
     }
 }

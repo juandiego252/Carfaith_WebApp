@@ -8,7 +8,8 @@ import {
     Truck,
     Package2,
     Group,
-    LineChart
+    LineChart,
+    Boxes
 } from "lucide-react"
 
 export interface MenuItem {
@@ -28,6 +29,7 @@ export const menuItems: MenuItem[] = [
     // { icon: Box, label: "Inventario", href: "/dashboard/inventario" },
     { icon: TrendingUp, label: "Transferencias", href: "/dashboard/transferencias" },
     { icon: LineChart, label: "Precios Historicos", href: "/dashboard/precios-historicos" },
+    { icon: Boxes, label: "Stock Productos", href: "/dashboard/stock-productos" },
     { icon: MapPin, label: "Ubicaciones", href: "/dashboard/ubicaciones" },
     // { icon: BarChart3, label: "Reportes", href: "/dashboard/reportes" },
     // { icon: Users, label: "Usuarios", href: "/dashboard/usuarios" },

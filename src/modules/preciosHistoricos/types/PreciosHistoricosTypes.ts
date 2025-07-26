@@ -1,6 +1,10 @@
 export interface ListPreciosHistoricos {
     idPreciosHistoricos: number;
-    idProductoProveedor: number;
+    codigoProducto: string;
+    nombreProducto: string;
+    lineaProducto: string;
+    nombreProveedor: string;
+    tipoProveedor: string;
     precio: number;
     fechaInicio: Date;
     fechaFinalizacion: Date;
@@ -12,13 +16,4 @@ export interface CreatePreciosHistoricosRequest {
     precio: number;
     fechaInicio: Date;
     fechaFinalizacion: Date;
-}
-
-export interface ListProductoProveedor {
-    idProductoProveedor: number;
-    nombreProducto: string;
-    codigoProducto: string;
-    nombreProveedor: string;
-    paisOrigen: string;
-    lineaProducto: string;
 }
