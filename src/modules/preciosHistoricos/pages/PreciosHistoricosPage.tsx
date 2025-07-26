@@ -1,16 +1,30 @@
 import { Button, Card, CardContent, CardHeader, CardTitle, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/core/components"
-import { Building2, Search, MoreHorizontal, Edit, Trash2, Plus, MapPin } from "lucide-react"
+import { Building2, Search, MoreHorizontal, Edit, Trash2, Plus, MapPin, Filter } from "lucide-react"
 import { useEffect, useState } from "react"
-import type { CreatePreciosHistoricosRequest, ListPreciosHistoricos, ListProductoProveedor } from "../types/PreciosHistoricosTypes";
-import { createPreciosHistoricos, deletePreciosHistoricos, getPreciosHistoricos, getProductoProveedor, updatePreciosHistoricos } from "../services/PreciosHistoricosService";
+import type { CreatePreciosHistoricosRequest, ListPreciosHistoricos } from "../types/PreciosHistoricosTypes";
+import { createPreciosHistoricos, deletePreciosHistoricos, getPreciosHistoricos, updatePreciosHistoricos } from "../services/PreciosHistoricosService";
 import { PrecioHistoricoDialog } from "../components/PreciosHistoricosDialog";
+import { getLineasProductos, getProductos } from "@/modules/productos/services/ProductoService";
+import type { LineaDeProducto, ProductoList } from "@/modules/productos/types/ProductoType";
+import type { ListProveedores } from "@/modules/proveedores/types/ProveedorType";
+import { getProveedorDetalles } from "@/modules/proveedores/services/ProveedorService";
+
+const tiposProveedor = [
+    { label: "Local", value: "local" },
+    { label: "Nacional", value: "nacional" },
+    { label: "Internacional", value: "internacional" }
+];
 
 export const PreciosHistoricosPage = () => {
     const [preciosHistoricos, setPreciosHistoricos] = useState<ListPreciosHistoricos[]>([]);
-    const [productoProveedor, setProductoProveedor] = useState<ListProductoProveedor[]>([]);
+    const [lineasProducto, setLineasProducto] = useState<LineaDeProducto[]>([]);
+    const [productos, setProductos] = useState<ProductoList[]>([]);
+    const [proveedores, setProveedores] = useState<ListProveedores[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState("")
+    const [selectedTipoProveedor, setSelectedTipoProveedor] = useState("all")
+    const [selectedLineaProducto, setSelectedLineaProducto] = useState("all")
     const [selectedEstado, setSelectedEstado] = useState("all")
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -21,12 +35,16 @@ export const PreciosHistoricosPage = () => {
     const fetchPreciosHistoricos = async () => {
         try {
             setLoading(true);
-            const [precioHistoricoData, productosProveedorData] = await Promise.all([
+            const [precioHistoricoData, lineaProductoData, productosData, proveedoresData] = await Promise.all([
                 getPreciosHistoricos(),
-                getProductoProveedor()
+                getLineasProductos(),
+                getProductos(),
+                getProveedorDetalles()
             ])
             setPreciosHistoricos(precioHistoricoData);
-            setProductoProveedor(productosProveedorData);
+            setLineasProducto(lineaProductoData);
+            setProductos(productosData);
+            setProveedores(proveedoresData);
             setError(null);
         } catch (err) {
             setError("Error al cargar los Precios Históricos");
@@ -73,46 +91,32 @@ export const PreciosHistoricosPage = () => {
         }
     }
 
-    const handleEditTransferencias = (precioHistorico: ListPreciosHistoricos) => {
-        setEditingPrecioHistorico({
-            idPreciosHistoricos: precioHistorico.idPreciosHistoricos,
-            idProductoProveedor: precioHistorico.idProductoProveedor,
-            precio: precioHistorico.precio,
-            fechaInicio: precioHistorico.fechaInicio,
-            fechaFinalizacion: precioHistorico.fechaFinalizacion,
-        });
-        setIsDialogOpen(true);
-    }
-
-    const handleDeleteTransferencias = async (idPreciosHistoricos: number) => {
-        try {
-            setIsSubmitting(true);
-            await deletePreciosHistoricos(idPreciosHistoricos);
-            await fetchPreciosHistoricos();
-            setError(null);
-        } catch (error) {
-            console.error('Error al eliminar el Precio Historico:', error);
-            setError('Error al eliminar el Precio Historico');
-        } finally {
-            setIsSubmitting(false);
-        }
-
-    }
+    // const handleEditTransferencias = (precioHistorico: ListPreciosHistoricos) => {
+    //     setEditingPrecioHistorico({
+    //         idPreciosHistoricos: precioHistorico.idPreciosHistoricos,
+    //         // idProductoProveedor: precioHistorico.idProductoProveedor,
+    //         precio: precioHistorico.precio,
+    //         fechaInicio: precioHistorico.fechaInicio,
+    //         fechaFinalizacion: precioHistorico.fechaFinalizacion,
+    //     });
+    //     setIsDialogOpen(true);
+    // }
 
     // Filtrado de proveedores
-    // const filteredTransferencias = transferencias.filter(orden => {
-    //     // Filtrar por término de búsqueda
-    //     const searchFilter = searchTerm.toLowerCase() === '' ||
-    //         orden.nombreProveedor.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    //         orden.numeroOrden.toLowerCase().includes(searchTerm.toLowerCase());
+    const filteredPrecios = preciosHistoricos.filter(precio => {
+        // Filtrar por término de búsqueda
+        const searchFilter = searchTerm.toLowerCase() === '' ||
+            precio.codigoProducto.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            precio.nombreProducto.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            precio.nombreProveedor.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            precio.tipoProveedor.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            precio.lineaProducto.toLowerCase().includes(searchTerm.toLowerCase());
 
-    //     // Filtrar por estado
-    //     const estadoFilter = selectedEstado === 'all' ||
-    //         (selectedEstado === 'Entregado' && orden.estado === 'Entregado') ||
-    //         (selectedEstado === 'En Proceso' && orden.estado === 'En Proceso');
+        const tipoProveedorFilter = selectedTipoProveedor === 'all' || precio.tipoProveedor === selectedTipoProveedor;
+        const lineaProductoFilter = selectedLineaProducto === 'all' || precio.lineaProducto === selectedLineaProducto;
 
-    //     return searchFilter && estadoFilter;
-    // });
+        return searchFilter && tipoProveedorFilter && lineaProductoFilter;
+    });
 
     return (
         <div className="space-y-6">
@@ -120,7 +124,7 @@ export const PreciosHistoricosPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Proveedores</CardTitle>
+                        <CardTitle className="text-sm font-medium">Total Precios Historicos</CardTitle>
                         <Building2 className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
@@ -131,11 +135,21 @@ export const PreciosHistoricosPage = () => {
 
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Proveedores Locales</CardTitle>
+                        <CardTitle className="text-sm font-medium">Proveedores</CardTitle>
                         <MapPin className="h-4 w-4 text-green-600" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{productoProveedor.length}</div>
+                        <div className="text-2xl font-bold">{proveedores.length}</div>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Productos</CardTitle>
+                        <MapPin className="h-4 w-4 text-green-600" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{productos.length}</div>
                     </CardContent>
                 </Card>
             </div>
@@ -146,7 +160,7 @@ export const PreciosHistoricosPage = () => {
                     <div>
                         <CardTitle>Precios Históricos</CardTitle>
                     </div>
-                    <Button
+                    {/* <Button
                         onClick={() => {
                             setEditingPrecioHistorico(null);
                             setIsDialogOpen(true);
@@ -155,7 +169,7 @@ export const PreciosHistoricosPage = () => {
                     >
                         <Plus className="mr-2 h-4 w-4" />
                         Nuevo Precio Historico
-                    </Button>
+                    </Button> */}
                 </CardHeader>
                 <CardContent>
                     {/* Filtros */}
@@ -169,28 +183,33 @@ export const PreciosHistoricosPage = () => {
                                 className="pl-10"
                             />
                         </div>
-                        {/* <Select value={selectedTipo} onValueChange={setSelectedTipo}>
-              <SelectTrigger className="w-full sm:w-[180px]">
-                <Filter className="mr-2 h-4 w-4" />
-                <SelectValue placeholder="Tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos los tipos</SelectItem>
-                {tiposProveedor.map((tipo) => (
-                  <SelectItem key={tipo.value} value={tipo.value}>
-                    {tipo.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select> */}
-                        <Select value={selectedEstado} onValueChange={setSelectedEstado}>
-                            <SelectTrigger className="w-full sm:w-[150px]">
-                                <SelectValue placeholder="Estado" />
+                        <Select value={selectedTipoProveedor} onValueChange={setSelectedTipoProveedor}>
+                            <SelectTrigger className="w-full sm:w-[180px]">
+                                <Filter className="mr-2 h-4 w-4" />
+                                <SelectValue placeholder="Tipo de Proveedor" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="all">Todos</SelectItem>
-                                <SelectItem value="Entregado">Entregados</SelectItem>
-                                <SelectItem value="En Proceso">En Proceso</SelectItem>
+                                <SelectItem value="all">Todos los tipos</SelectItem>
+                                {tiposProveedor.map((tipo) => (
+                                    <SelectItem key={tipo.value} value={tipo.value}>
+                                        {tipo.label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+
+                        <Select value={selectedLineaProducto} onValueChange={setSelectedLineaProducto}>
+                            <SelectTrigger className="w-full sm:w-[180px]">
+                                <Filter className="mr-2 h-4 w-4" />
+                                <SelectValue placeholder="Tipo de Proveedor" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">Todos las lineas</SelectItem>
+                                {lineasProducto.map((linea) => (
+                                    <SelectItem key={linea.nombre} value={linea.nombre}>
+                                        {linea.nombre}
+                                    </SelectItem>
+                                ))}
                             </SelectContent>
                         </Select>
                     </div>
@@ -213,17 +232,33 @@ export const PreciosHistoricosPage = () => {
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead>Producto Proveedor</TableHead>
-                                        <TableHead>Fecha de Inicio</TableHead>
-                                        <TableHead>Fecha de Finalización</TableHead>
+                                        <TableHead className="text-center">Código de Producto</TableHead>
+                                        <TableHead className="text-center">Producto</TableHead>
+                                        <TableHead className="text-center">Línea de Producto</TableHead>
+                                        <TableHead className="text-center">Proveedor</TableHead>
+                                        <TableHead className="text-center">Tipo de Proveedor</TableHead>
+                                        <TableHead className="text-center">Fecha de Inicio</TableHead>
+                                        <TableHead className="text-center">Fecha de Finalización</TableHead>
                                         <TableHead className="text-right">Acciones</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {preciosHistoricos.map((precioHistorico) => (
+                                    {filteredPrecios.map((precioHistorico) => (
                                         <TableRow key={precioHistorico.idPreciosHistoricos}>
                                             <TableCell>
-                                                {precioHistorico.idProductoProveedor.toString().slice(0, 10)}
+                                                {precioHistorico.codigoProducto}
+                                            </TableCell>
+                                            <TableCell>
+                                                {precioHistorico.nombreProducto}
+                                            </TableCell>
+                                            <TableCell>
+                                                {precioHistorico.lineaProducto}
+                                            </TableCell>
+                                            <TableCell>
+                                                {precioHistorico.nombreProveedor}
+                                            </TableCell>
+                                            <TableCell>
+                                                {precioHistorico.tipoProveedor}
                                             </TableCell>
                                             <TableCell>
                                                 {precioHistorico.fechaInicio.toString().slice(0, 10)}
@@ -240,19 +275,19 @@ export const PreciosHistoricosPage = () => {
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent align="end">
                                                         <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                                                        <DropdownMenuItem onClick={() => handleEditTransferencias(precioHistorico)}>
+                                                        {/* <DropdownMenuItem onClick={() => handleEditTransferencias(precioHistorico)}>
                                                             <Edit className="mr-2 h-4 w-4" />
                                                             Editar
-                                                        </DropdownMenuItem>
+                                                        </DropdownMenuItem> */}
                                                         <DropdownMenuSeparator />
-                                                        <DropdownMenuItem
+                                                        {/* <DropdownMenuItem
                                                             className="text-red-600"
                                                             disabled={isSubmitting}
                                                             onClick={() => handleDeleteTransferencias(precioHistorico.idPreciosHistoricos)}
                                                         >
                                                             <Trash2 className="mr-2 h-4 w-4" />
                                                             Eliminar
-                                                        </DropdownMenuItem>
+                                                        </DropdownMenuItem> */}
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>
                                             </TableCell>

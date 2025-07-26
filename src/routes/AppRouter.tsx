@@ -9,6 +9,7 @@ import { OrdenIngresoPage } from "@/modules/ordenIngreso/page/OrdenIngresoPage";
 import { PreciosHistoricosPage } from "@/modules/preciosHistoricos/pages/PreciosHistoricosPage";
 import { ProductosPage } from "@/modules/productos/page/ProductosPage";
 import { ProveedoresPage } from "@/modules/proveedores/page/ProveedoresPage";
+import { StockPage } from "@/modules/stock/pages/StockPage";
 import { lazy, Suspense, useEffect, useState } from "react"
 import { BrowserRouter, Navigate, Route, Routes } from "react-router"
 
@@ -60,8 +61,10 @@ export const AppRouter = () => {
                     <Route path="proveedores" element={<ProveedoresPage />} />
                     <Route path="ordenes-compra" element={<OrdenComprasPage />} />
                     <Route path="producto-proveedor" element={<ProductosProveedoresPage />} />
-                    <Route path="precios-historicos" element={<PreciosHistoricosPage />} />
                     <Route path="ordenes-ingreso" element={<OrdenIngresoPage />} />
+                    <Route path="ordenes-egreso" element={<OrdenIngresoPage />} />
+                    <Route path="stock-productos" element={<StockPage />} />
+                    <Route path="precios-historicos" element={<PreciosHistoricosPage />} />
                 </Route>
 
                 {/* Ruta por defecto - refirigir a la autenticacion */}
