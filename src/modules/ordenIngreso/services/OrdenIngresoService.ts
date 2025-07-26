@@ -38,3 +38,14 @@ export const getUbicaciones = async () => {
         throw error;
     }
 }
+
+
+export const getOrdenesIngresoDetalles = async () => {
+    try {
+        const response = await carfaithApi.get("/OrdenDeIngreso/ListarOrdenesIngresoConDetalles");
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching ordenes ingreso detalles:", error);
+        throw error;
+    }
+}

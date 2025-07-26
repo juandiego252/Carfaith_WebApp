@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/core/components'
-import { Package2, Clock, CheckCircle, Plus } from 'lucide-react'
+import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/core/components'
+import { Package2, Clock, CheckCircle, Plus, Calendar, Eye, Edit, MoreHorizontal, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { OrdenIngresoDialog } from '../components/OrdenIngresoDialog'
-import type { CreateOrdenIngresoDetalleRequest } from '../types/OrdenIngresoTypes'
+import type { CreateOrdenIngresoDetalleRequest, ListOrdenesIngreoDetalles } from '../types/OrdenIngresoTypes'
 import { useOrdenIngresoData } from '../hooks/useOrdenIngresoData'
 import { createOrdenIngresoDetalles } from '../services/OrdenIngresoService'
 
@@ -14,7 +14,7 @@ export const OrdenIngresoPage = () => {
     const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
     const [editingOrden, setEditingOrden] = useState<any>(null);
     const [selectedOrden, setSelectedOrden] = useState<any>(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    // const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const {
@@ -22,6 +22,8 @@ export const OrdenIngresoPage = () => {
         loading,
         ordenesCompra,
         ubicaciones,
+        ordenesIngreso,
+        refreshData
     } = useOrdenIngresoData();
     // Handle opening the create dialog
     const handleCreateOrden = () => {
@@ -29,16 +31,32 @@ export const OrdenIngresoPage = () => {
         setIsCreateDialogOpen(true);
     };
 
-    // // Handle view order details
-    // const handleViewDetails = (orden: any) => {
-    //     setSelectedOrden(orden);
-    //     setIsDetailsDialogOpen(true);
-    // };
+    // Handle view order details
+    const handleViewDetails = (orden: ListOrdenesIngreoDetalles) => {
+        setSelectedOrden(orden);
+        setIsDetailsDialogOpen(true);
+    };
+    const getStatusBadge = (status: string) => {
+        switch (status.toLowerCase()) {
+            case 'pendiente':
+                return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">Pendiente</Badge>;
+            case 'en proceso':
+                return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">En Proceso</Badge>;
+            case 'completada':
+                return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Completada</Badge>;
+            default:
+                return <Badge variant="outline">{status}</Badge>;
+        }
+    };
+
+    const pendingCount = ordenesIngreso.filter(orden => orden.estado.toLowerCase() === 'pendiente').length;
+    const inProcessCount = ordenesIngreso.filter(orden => orden.estado.toLowerCase() === 'en proceso').length;
+    const completedCount = ordenesIngreso.filter(orden => orden.estado.toLowerCase() === 'completada').length;
 
 
     const handleSubmit = async (data: CreateOrdenIngresoDetalleRequest): Promise<void> => {
         try {
-            setIsSubmitting(true);
+            // setIsSubmitting(true);
             setError(null);
 
             await createOrdenIngresoDetalles(data);
@@ -46,11 +64,12 @@ export const OrdenIngresoPage = () => {
             // Close the dialog and reset form
             setIsCreateDialogOpen(false);
             setEditingOrden(null);
+            refreshData();
         } catch (error) {
             console.error('Error al guardar la orden de ingreso:', error);
             setError('Error al guardar la orden de ingreso');
         } finally {
-            setIsSubmitting(false);
+            // setIsSubmitting(false);
         }
     }
 
@@ -64,7 +83,7 @@ export const OrdenIngresoPage = () => {
                         <Package2 className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">0</div>
+                        <div className="text-2xl font-bold">{ordenesIngreso.length}</div>
                     </CardContent>
                 </Card>
 
@@ -74,7 +93,7 @@ export const OrdenIngresoPage = () => {
                         <Clock className="h-4 w-4 text-yellow-600" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">0</div>
+                        <div className="text-2xl font-bold">{pendingCount}</div>
                     </CardContent>
                 </Card>
 
@@ -84,7 +103,7 @@ export const OrdenIngresoPage = () => {
                         <Package2 className="h-4 w-4 text-blue-600" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">0</div>
+                        <div className="text-2xl font-bold">{inProcessCount}</div>
                     </CardContent>
                 </Card>
 
@@ -94,7 +113,7 @@ export const OrdenIngresoPage = () => {
                         <CheckCircle className="h-4 w-4 text-green-600" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">0</div>
+                        <div className="text-2xl font-bold">{completedCount}</div>
                     </CardContent>
                 </Card>
             </div>
@@ -126,7 +145,7 @@ export const OrdenIngresoPage = () => {
                         <div className="flex justify-center my-8">
                             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
                         </div>
-                    ) : (
+                    ) : ordenesIngreso.length === 0 ? (
                         <div className="text-center py-8">
                             <Package2 className="mx-auto h-12 w-12 text-gray-400" />
                             <h3 className="mt-2 text-sm font-medium text-gray-900">No hay órdenes de ingreso</h3>
@@ -134,6 +153,60 @@ export const OrdenIngresoPage = () => {
                                 Comienza creando una nueva orden de ingreso.
                             </p>
                         </div>
+                    ) : (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Orden de Compra</TableHead>
+                                    <TableHead>Proveedor</TableHead>
+                                    <TableHead>Fecha</TableHead>
+                                    <TableHead>Estado</TableHead>
+                                    <TableHead>Productos</TableHead>
+                                    <TableHead className="text-right">Acciones</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {ordenesIngreso.map((orden) => (
+                                    <TableRow key={orden.idOrdenIngreso}>
+                                        <TableCell>{(orden as any).numeroOrden}</TableCell>
+                                        <TableCell>{(orden as any).nombreProveedor}</TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center">
+                                                <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
+                                                {new Date(orden.fecha).toLocaleDateString()}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>{getStatusBadge(orden.estado)}</TableCell>
+                                        <TableCell>{orden.detalles.length} productos</TableCell>
+                                        <TableCell className="text-right">
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" className="h-8 w-8 p-0">
+                                                        <MoreHorizontal className="h-4 w-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                                                    <DropdownMenuItem onClick={() => handleViewDetails(orden)}>
+                                                        <Eye className="mr-2 h-4 w-4" />
+                                                        Ver detalles
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem>
+                                                        <Edit className="mr-2 h-4 w-4" />
+                                                        Editar
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuSeparator />
+                                                    <DropdownMenuItem className='text-red-600'>
+                                                        <Trash2 className="mr-2 h-4 w-4 " />
+                                                        Eliminar
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
                     )}
                 </CardContent>
             </Card>
@@ -147,27 +220,67 @@ export const OrdenIngresoPage = () => {
                 asociaciones={asociaciones}
                 ubicaciones={ubicaciones}
                 onSubmit={handleSubmit}
+
             />
+            {/* ...existing code... */}
 
             {/* Dialog for viewing order details */}
             <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
-                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2">
+                        <DialogTitle className="flex items-center gap-2 text-xl">
                             <Package2 className="h-5 w-5" />
-                            Detalles de la Orden
+                            Detalles de la Orden #{selectedOrden?.idOrdenIngreso}
                         </DialogTitle>
-                        <DialogDescription>Detalles completos de la orden de ingreso</DialogDescription>
+                        <DialogDescription>
+                            Orden de compra: {selectedOrden?.numeroOrden} - {selectedOrden?.nombreProveedor}
+                        </DialogDescription>
                     </DialogHeader>
 
                     {selectedOrden && (
                         <div className="space-y-6">
+                            <div className="grid grid-cols-3 gap-4">
+                                <div>
+                                    <h4 className="text-sm font-medium text-muted-foreground">Fecha</h4>
+                                    <p>{new Date(selectedOrden.fecha).toLocaleDateString()}</p>
+                                </div>
+                                <div>
+                                    <h4 className="text-sm font-medium text-muted-foreground">Estado</h4>
+                                    <p>{getStatusBadge(selectedOrden.estado)}</p>
+                                </div>
+                                <div>
+                                    <h4 className="text-sm font-medium text-muted-foreground">Total productos</h4>
+                                    <p>{selectedOrden.detalles.length}</p>
+                                </div>
+                            </div>
+
                             <Card>
                                 <CardHeader>
                                     <CardTitle className="text-lg">Productos</CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    {/* Product details would go here */}
+                                    <Table className="w-full">
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead className="w-1/4">Producto</TableHead>
+                                                <TableHead className="w-[15%]">Cantidad</TableHead>
+                                                <TableHead className="w-[20%]">Tipo Ingreso</TableHead>
+                                                <TableHead className="w-[20%]">Ubicación</TableHead>
+                                                <TableHead className="w-[15%]">Lote</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {selectedOrden && selectedOrden.detalles && selectedOrden.detalles.map((detalle: any, index: any) => (
+                                                <TableRow key={index}>
+                                                    <TableCell>{detalle.nombreProducto}</TableCell>
+                                                    <TableCell>{detalle.cantidad}</TableCell>
+                                                    <TableCell>{detalle.tipoIngreso}</TableCell>
+                                                    <TableCell>{detalle.nombreUbicacion}</TableCell>
+                                                    <TableCell>{detalle.numeroLote || 'N/A'}</TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
                                 </CardContent>
                             </Card>
                         </div>

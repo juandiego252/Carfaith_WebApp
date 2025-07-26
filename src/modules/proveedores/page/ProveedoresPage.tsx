@@ -57,7 +57,7 @@ export const ProveedoresPage = () => {
         try {
             setIsSubmitting(true);
             const proveedorData: CreateProveedorRequest = {
-                idProveedor: data.idProveedor || 0, // Use 0 for new providers
+                idProveedor: data.idProveedor || 0,
                 nombreProveedor: data.nombreProveedor,
                 paisOrigen: data.paisOrigen,
                 tipoProveedor: data.tipoProveedor,
