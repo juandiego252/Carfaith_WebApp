@@ -89,10 +89,22 @@ export const OrdenIngresoDialog = ({ open, onOpenChange, editingOrden, ordenesCo
                 detalles: []
             })
         }
-        // Lógica para cargar datos de `editingOrden` si existe
-        if (open && editingOrden) {
-            // Aquí deberías mapear `editingOrden` a `FormValues` y usar `reset()`
-            // reset(mappedEditingOrden)
+        else if (open && editingOrden) {
+            // Mapear los datos de editingOrden al formato esperado por el formulario
+            reset({
+                idOrdenCompra: editingOrden.idOrdenCompra.toString(),
+                fecha: new Date(editingOrden.fecha),
+                origenCompra: editingOrden.origenDeCompra,
+                estado: editingOrden.estado,
+                detalles: editingOrden.detalles.map(detalle => ({
+                    idProductoProveedor: detalle.idProductoProveedor,
+                    cantidad: detalle.cantidad,
+                    precioUnitario: detalle.precioUnitario,
+                    ubicacion: detalle.ubicacionId.toString(),
+                    tipoIngreso: detalle.tipoIngreso,
+                    numeroLote: detalle.numeroLote || ""
+                }))
+            });
         }
     }, [open, editingOrden, reset]);
 
@@ -112,6 +124,7 @@ export const OrdenIngresoDialog = ({ open, onOpenChange, editingOrden, ordenesCo
         try {
             setIsSubmitting(true);
             const formattedData: CreateOrdenIngresoDetalleRequest = {
+                ...(editingOrden?.idOrdenIngreso && { idOrdenIngreso: editingOrden.idOrdenIngreso }),
                 idOrdenCompra: parseInt(data.idOrdenCompra),
                 // fecha: new Date(data.fecha),
                 fecha: data.fecha,

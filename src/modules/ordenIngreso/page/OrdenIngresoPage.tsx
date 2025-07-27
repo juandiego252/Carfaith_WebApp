@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { OrdenIngresoDialog } from '../components/OrdenIngresoDialog'
 import type { CreateOrdenIngresoDetalleRequest, ListOrdenesIngreoDetalles } from '../types/OrdenIngresoTypes'
 import { useOrdenIngresoData } from '../hooks/useOrdenIngresoData'
-import { createOrdenIngresoDetalles } from '../services/OrdenIngresoService'
+import { createOrdenIngresoDetalles, deleteOrdenIngresoConDetalles, updateOrdenIngresoConDetalles } from '../services/OrdenIngresoService'
 
 
 export const OrdenIngresoPage = () => {
@@ -14,7 +14,7 @@ export const OrdenIngresoPage = () => {
     const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
     const [editingOrden, setEditingOrden] = useState<any>(null);
     const [selectedOrden, setSelectedOrden] = useState<any>(null);
-    // const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const {
@@ -36,6 +36,46 @@ export const OrdenIngresoPage = () => {
         setSelectedOrden(orden);
         setIsDetailsDialogOpen(true);
     };
+
+    // Handle edit order
+    const handleEditOrden = (orden: any) => {
+        // Preparar datos para el formato esperado por el formulario de edición
+        const ordenForEdit: CreateOrdenIngresoDetalleRequest = {
+            idOrdenIngreso: orden.idOrdenIngreso,
+            idOrdenCompra: orden.idOrdenCompra,
+            origenDeCompra: orden.origenDeCompra,
+            fecha: new Date(orden.fecha),
+            estado: orden.estado,
+            detalles: orden.detalles.map((detalle: any) => ({
+                idProductoProveedor: detalle.idProductoProveedor,
+                cantidad: detalle.cantidad,
+                precioUnitario: detalle.precioUnitario,
+                ubicacionId: detalle.ubicacionId,
+                tipoIngreso: detalle.tipoIngreso,
+                numeroLote: detalle.numeroLote || ""
+            }))
+        };
+
+        setEditingOrden(ordenForEdit);
+        setIsCreateDialogOpen(true);
+    };
+
+    // Handle the delete action directly
+    const handleDelete = async (idOrdenIngreso: number) => {
+        try {
+            setIsDeleting(true);
+            setError(null);
+            await deleteOrdenIngresoConDetalles(idOrdenIngreso);
+            refreshData();
+        } catch (error) {
+            console.error('Error al eliminar la orden de ingreso:', error);
+            setError('Error al eliminar la orden de ingreso');
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
+
     const getStatusBadge = (status: string) => {
         switch (status.toLowerCase()) {
             case 'pendiente':
@@ -58,10 +98,13 @@ export const OrdenIngresoPage = () => {
         try {
             // setIsSubmitting(true);
             setError(null);
-
-            await createOrdenIngresoDetalles(data);
-
-            // Close the dialog and reset form
+            if (data.idOrdenIngreso) {
+                // Si hay ID, es una edición
+                await updateOrdenIngresoConDetalles(data);
+            } else {
+                // Si no hay ID, es una creación
+                await createOrdenIngresoDetalles(data);
+            }
             setIsCreateDialogOpen(false);
             setEditingOrden(null);
             refreshData();
@@ -191,12 +234,17 @@ export const OrdenIngresoPage = () => {
                                                         <Eye className="mr-2 h-4 w-4" />
                                                         Ver detalles
                                                     </DropdownMenuItem>
-                                                    <DropdownMenuItem>
+                                                    <DropdownMenuItem
+                                                        onClick={() => handleEditOrden(orden)}
+                                                    >
                                                         <Edit className="mr-2 h-4 w-4" />
                                                         Editar
                                                     </DropdownMenuItem>
                                                     <DropdownMenuSeparator />
-                                                    <DropdownMenuItem className='text-red-600'>
+                                                    <DropdownMenuItem
+                                                        className='text-red-600'
+                                                        onClick={() => handleDelete(orden.idOrdenIngreso)}
+                                                    >
                                                         <Trash2 className="mr-2 h-4 w-4 " />
                                                         Eliminar
                                                     </DropdownMenuItem>

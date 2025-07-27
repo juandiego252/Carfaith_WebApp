@@ -49,3 +49,40 @@ export const getOrdenesIngresoDetalles = async () => {
         throw error;
     }
 }
+
+export const updateOrdenIngresoConDetalles = async (data: CreateOrdenIngresoDetalleRequest) => {
+    const formattedDate = data.fecha instanceof Date
+        ? formatDateLocal(data.fecha)
+        : formatDateLocal(new Date());
+    try {
+        const response = await carfaithApi.put<CreateOrdenIngresoDetalleRequest>("/OrdenDeIngreso/EditarOrdenIngresoConDetalles", {
+            idOrdenIngreso: data.idOrdenIngreso,
+            idOrdenCompra: data.idOrdenCompra,
+            origenDeCompra: data.origenDeCompra,
+            fecha: formattedDate,
+            estado: data.estado,
+            detalles: data.detalles.map(detalle => ({
+                idProductoProveedor: detalle.idProductoProveedor,
+                cantidad: detalle.cantidad,
+                precioUnitario: detalle.precioUnitario,
+                ubicacionId: detalle.ubicacionId,
+                tipoIngreso: detalle.tipoIngreso,
+                numeroLote: detalle.numeroLote,
+            }))
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error updating OrdenIngresoDetalles:", error);
+        throw error;
+    }
+}
+
+export const deleteOrdenIngresoConDetalles = async (idOrdenIngreso: number) => {
+    try {
+        const response = await carfaithApi.delete(`/OrdenDeIngreso/EliminarOrdenIngresoConDetalles/${idOrdenIngreso}`);
+        return response.data;
+    } catch (error) {
+        console.error("Error deleting OrdenIngresoDetalles:", error);
+        throw error;
+    }
+}
