@@ -263,7 +263,7 @@ export const OrdenEgresoPage = () => {
 
             {/* Dialog for viewing order details */}
             <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
-                <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+                <DialogContent className="max-w-6xl max-h-[90vh]">
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2 text-xl">
                             <Package2 className="h-5 w-5" />
@@ -271,54 +271,56 @@ export const OrdenEgresoPage = () => {
                         </DialogTitle>
                     </DialogHeader>
 
-                    {selectedOrden && (
-                        <div className="space-y-6">
-                            <div className="grid grid-cols-3 gap-4">
-                                <div>
-                                    <h4 className="text-sm font-medium text-muted-foreground">Fecha</h4>
-                                    <p>{new Date(selectedOrden.fecha).toLocaleDateString()}</p>
+                    <div className="overflow-y-auto max-h-[75vh] space-y-6 mt-4 pr-2">
+                        {selectedOrden && (
+                            <div className="space-y-6">
+                                <div className="grid grid-cols-3 gap-4">
+                                    <div>
+                                        <h4 className="text-sm font-medium text-muted-foreground">Fecha</h4>
+                                        <p>{new Date(selectedOrden.fecha).toLocaleDateString()}</p>
+                                    </div>
+                                    <div>
+                                        <h4 className="text-sm font-medium text-muted-foreground">Estado</h4>
+                                        <p>{getStatusBadge(selectedOrden.estado)}</p>
+                                    </div>
+                                    <div>
+                                        <h4 className="text-sm font-medium text-muted-foreground">Total productos</h4>
+                                        <p>{selectedOrden.detalles.length}</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h4 className="text-sm font-medium text-muted-foreground">Estado</h4>
-                                    <p>{getStatusBadge(selectedOrden.estado)}</p>
-                                </div>
-                                <div>
-                                    <h4 className="text-sm font-medium text-muted-foreground">Total productos</h4>
-                                    <p>{selectedOrden.detalles.length}</p>
-                                </div>
-                            </div>
 
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle className="text-lg">Productos</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <Table className="w-full">
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead className="w-1/4">Producto</TableHead>
-                                                <TableHead className="w-[15%]">Cantidad</TableHead>
-                                                <TableHead className="w-[20%]">Tipo Ingreso</TableHead>
-                                                <TableHead className="w-[20%]">Ubicación</TableHead>
-                                                <TableHead className="w-[15%]">Lote</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {selectedOrden && selectedOrden.detalles && selectedOrden.detalles.map((detalle: any, index: any) => (
-                                                <TableRow key={index}>
-                                                    <TableCell>{detalle.nombreProducto}</TableCell>
-                                                    <TableCell>{detalle.cantidad}</TableCell>
-                                                    <TableCell>{detalle.tipoEgreso}</TableCell>
-                                                    <TableCell>{detalle.nombreUbicacion}</TableCell>
-                                                    <TableCell>{detalle.numeroLote || 'N/A'}</TableCell>
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle className="text-lg">Productos</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <Table className="w-full">
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead className="w-1/4">Producto</TableHead>
+                                                    <TableHead className="w-[15%]">Cantidad</TableHead>
+                                                    <TableHead className="w-[20%]">Tipo Egreso</TableHead>
+                                                    <TableHead className="w-[20%]">Ubicación</TableHead>
+                                                    <TableHead className="w-[15%]">Lote</TableHead>
                                                 </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </CardContent>
-                            </Card>
-                        </div>
-                    )}
+                                            </TableHeader>
+                                            <TableBody>
+                                                {selectedOrden && selectedOrden.detalles && selectedOrden.detalles.map((detalle: any, index: any) => (
+                                                    <TableRow key={index}>
+                                                        <TableCell>{detalle.nombreProducto}</TableCell>
+                                                        <TableCell>{detalle.cantidad}</TableCell>
+                                                        <TableCell>{selectedOrden.tipoEgreso}</TableCell>
+                                                        <TableCell>{detalle.nombreUbicacion}</TableCell>
+                                                        <TableCell>{detalle.numeroLote || 'N/A'}</TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        )}
+                    </div>
                 </DialogContent>
             </Dialog>
         </div>
