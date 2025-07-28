@@ -1,5 +1,5 @@
-import { Plus, Search, MoreHorizontal, Edit, Trash2, Package, Tag } from "lucide-react"
-import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, Input, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/core/components"
+import { Plus, Search, MoreHorizontal, Edit, Trash2, Package, Tag, CircleOff, Filter } from "lucide-react"
+import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/core/components"
 import { useEffect, useState } from "react"
 import { createProducto, deleteProducto, editProducto, getLineasProductos, getProductos } from "../services/ProductoService";
 import type { EditProductoRequest, LineaDeProducto, ProductoList } from "../types/ProductoType";
@@ -17,6 +17,14 @@ export const ProductosPage = () => {
   // Estados para el dialogo
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<EditProductoRequest | null>(null);
+
+  // Add after your other state declarations
+  const [productStatuses, setProductStatuses] = useState<Record<number, boolean>>({});
+
+  // Agregar estados para filtros
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedLinea, setSelectedLinea] = useState("all");
+  const [selectedEstado, setSelectedEstado] = useState("all");
 
 
 
@@ -42,7 +50,27 @@ export const ProductosPage = () => {
 
   useEffect(() => {
     fetchProductos();
+    setProductStatuses(loadProductStatuses());
   }, []);
+
+  // Add after fetchProductos function
+  const loadProductStatuses = () => {
+    try {
+      const savedStatuses = localStorage.getItem('productStatuses');
+      return savedStatuses ? JSON.parse(savedStatuses) : {};
+    } catch (error) {
+      console.error('Error loading product statuses:', error);
+      return {};
+    }
+  };
+
+  const saveProductStatuses = (statuses: Record<number, boolean>) => {
+    try {
+      localStorage.setItem('productStatuses', JSON.stringify(statuses));
+    } catch (error) {
+      console.error('Error saving product statuses:', error);
+    }
+  };
 
   // Manejar envío del formulario
   const handleSubmit = async (data: {
@@ -94,6 +122,34 @@ export const ProductosPage = () => {
       setIsSubmitting(false);
     }
   }
+  const toggleProductStatus = (productId: number) => {
+    const newStatuses = {
+      ...productStatuses,
+      [productId]: !(productStatuses[productId] ?? true) // Default to true if undefined
+    };
+    setProductStatuses(newStatuses);
+    saveProductStatuses(newStatuses);
+  };
+
+  // Filtrado de productos
+  const filteredProductos = productos.filter(producto => {
+    // Filtrar por término de búsqueda
+    const searchFilter = searchTerm.toLowerCase() === '' ||
+      producto.nombreProducto.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      producto.codigoProducto.toLowerCase().includes(searchTerm.toLowerCase());
+
+    // Filtrar por línea de producto
+    const lineaFilter = selectedLinea === 'all' ||
+      producto.idLineaProdcuto.toString() === selectedLinea;
+
+    // Filtrar por estado
+    const estadoFilter = selectedEstado === 'all' ||
+      (selectedEstado === 'activo' && (productStatuses[producto.idProducto] ?? true)) ||
+      (selectedEstado === 'inactivo' && !(productStatuses[producto.idProducto] ?? true));
+
+    return searchFilter && lineaFilter && estadoFilter;
+  });
+
   return (
     <div className="space-y-6">
       {/* Header con estadísticas */}
@@ -124,17 +180,18 @@ export const ProductosPage = () => {
             <Package className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{productos.length}</div>
+            <div className="text-2xl font-bold">{productos.filter(p => productStatuses[p.idProducto] ?? true).length}</div>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Sin Stock</CardTitle>
+            <CardTitle className="text-sm font-medium">Productos Inactivos</CardTitle>
             <Package className="h-4 w-4 text-red-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">-</div>
+            <div className="text-2xl font-bold">
+              {productos.filter(p => !(productStatuses[p.idProducto] ?? true)).length}
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -168,10 +225,36 @@ export const ProductosPage = () => {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Buscar productos por nombre o código..."
+                placeholder="Buscar por nombre o codigo..."
                 className="pl-10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
+            <Select value={selectedLinea} onValueChange={setSelectedLinea}>
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <Filter className="mr-2 h-4 w-4" />
+                <SelectValue placeholder="Tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los líneas</SelectItem>
+                {lineasProducto.map((linea) => (
+                  <SelectItem key={linea.idLinea} value={linea.idLinea.toString()}>
+                    {linea.nombre}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={selectedEstado} onValueChange={setSelectedEstado}>
+              <SelectTrigger className="w-full sm:w-[150px]">
+                <SelectValue placeholder="Estado" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="activo">Activos</SelectItem>
+                <SelectItem value="inactivo">Inactivos</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {loading && (
@@ -195,52 +278,74 @@ export const ProductosPage = () => {
                     <TableHead>Código</TableHead>
                     <TableHead>Nombre</TableHead>
                     <TableHead>Línea de Producto</TableHead>
+                    <TableHead>Estado</TableHead>
                     <TableHead className="text-right">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {productos.map((producto) => (
-                    <TableRow key={producto.idProducto}>
-                      <TableCell className="font-medium">{producto.codigoProducto}</TableCell>
-                      <TableCell>{producto.nombreProducto}</TableCell>
-                      <TableCell>{producto.nombreLineaProducto}</TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                            <DropdownMenuItem
-                              onClick={() => {
-                                setEditingProduct({
-                                  idProducto: producto.idProducto,
-                                  codigoProducto: producto.codigoProducto,
-                                  nombre: producto.nombreProducto,
-                                  lineaDeProducto: producto.idLineaProdcuto
-                                });
-                                setIsDialogOpen(true);
-                              }}
-                            >
-                              <Edit className="mr-2 h-4 w-4" />
-                              Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              className="text-red-600"
-                              onClick={() => handleDelete(producto.idProducto)}
-                              disabled={isSubmitting}
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Eliminar
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                  {filteredProductos.length > 0 ? (
+                    filteredProductos.map((producto) => (
+                      <TableRow key={producto.idProducto}>
+                        <TableCell className="font-medium">{producto.codigoProducto}</TableCell>
+                        <TableCell>{producto.nombreProducto}</TableCell>
+                        <TableCell>{producto.nombreLineaProducto}</TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={productStatuses[producto.idProducto] ? "default" : "secondary"}
+                          >
+                            {productStatuses[producto.idProducto] ?? true ? "Activo" : "Inactivo"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setEditingProduct({
+                                    idProducto: producto.idProducto,
+                                    codigoProducto: producto.codigoProducto,
+                                    nombre: producto.nombreProducto,
+                                    lineaDeProducto: producto.idLineaProdcuto
+                                  });
+                                  setIsDialogOpen(true);
+                                }}
+                              >
+                                <Edit className="mr-2 h-4 w-4" />
+                                Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => {
+                                toggleProductStatus(producto.idProducto);
+                              }}>
+                                <CircleOff className="mr-2 h-4 w-4" />
+                                {productStatuses[producto.idProducto] ?? true ? "Desactivar" : "Activar"}
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                className="text-red-600"
+                                onClick={() => handleDelete(producto.idProducto)}
+                                disabled={isSubmitting}
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Eliminar
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={5} className="h-24 text-center">
+                        No se encontraron productos con los filtros seleccionados.
                       </TableCell>
                     </TableRow>
-                  ))}
+                  )}
                 </TableBody>
               </Table>
             </div>
