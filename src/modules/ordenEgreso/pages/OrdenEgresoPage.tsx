@@ -41,12 +41,12 @@ export const OrdenEgresoPage = () => {
         const ordenForEdit: CreateOrdenEgresoRequest = {
             idOrdenEgreso: orden.idOrdenEgreso,
             fecha: new Date(orden.fecha),
+            tipoEgreso: orden.tipoEgreso,
             destino: orden.destino,
             estado: orden.estado,
             detalles: orden.detalles.map((detalle: any) => ({
                 idProductoProveedor: detalle.idProductoProveedor,
                 cantidad: detalle.cantidad,
-                tipoEgreso: detalle.tipoEgreso,
                 ubicacionId: detalle.ubicacionId,
             }))
         };

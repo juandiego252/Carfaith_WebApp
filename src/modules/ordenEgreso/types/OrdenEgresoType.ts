@@ -1,5 +1,6 @@
 export interface CreateOrdenEgresoRequest {
     idOrdenEgreso?: number;
+    tipoEgreso: TipoEgreso;
     fecha: Date;
     destino: string;
     estado: string;
@@ -11,12 +12,12 @@ export type TipoEgreso = "por_lote" | "por_cantidad";
 export interface Detalle {
     idProductoProveedor: number;
     cantidad: number;
-    tipoEgreso: string;
     ubicacionId: number;
 }
 
 export interface ListOrdenesEgresoDetalles {
     idOrdenEgreso: number;
+    tipoEgreso: TipoEgreso;
     fecha: Date;
     destino: string;
     estado: string;

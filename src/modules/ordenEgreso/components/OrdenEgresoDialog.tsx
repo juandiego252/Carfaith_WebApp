@@ -18,6 +18,7 @@ const detalleSchema = z.object({
 });
 
 const ordenIngresoSchema = z.object({
+    tipoEgreso: z.enum(["por_cantidad", "por_lote"]),
     fecha: z
         .date()
         .refine((date) => !!date, {
@@ -47,6 +48,7 @@ export const OrdenEgresoDialog = ({ open, onOpenChange, editingOrden, onSubmit, 
     const { register, handleSubmit, reset, setValue, watch, control, formState: { errors } } = useForm<FormValues>({
         resolver: zodResolver(ordenIngresoSchema),
         defaultValues: {
+            tipoEgreso: "por_cantidad",
             fecha: new Date(),
             destino: "",
             estado: "pendiente",
@@ -61,6 +63,7 @@ export const OrdenEgresoDialog = ({ open, onOpenChange, editingOrden, onSubmit, 
 
     const selectedEstado = watch("estado");
     const detalles = watch("detalles");
+
     useEffect(() => {
         if (open && !editingOrden) {
             reset({
@@ -74,12 +77,12 @@ export const OrdenEgresoDialog = ({ open, onOpenChange, editingOrden, onSubmit, 
             // Mapear los datos de editingOrden al formato esperado por el formulario
             reset({
                 fecha: new Date(editingOrden.fecha),
+                tipoEgreso: editingOrden.tipoEgreso,
                 destino: editingOrden.destino,
                 estado: editingOrden.estado,
                 detalles: editingOrden.detalles.map(detalle => ({
                     idProductoProveedor: detalle.idProductoProveedor,
                     cantidad: detalle.cantidad,
-                    tipoEgreso: detalle.tipoEgreso,
                     ubicacion: detalle.ubicacionId.toString(),
                 }))
             });
@@ -101,13 +104,13 @@ export const OrdenEgresoDialog = ({ open, onOpenChange, editingOrden, onSubmit, 
             setIsSubmitting(true);
             const formattedData: CreateOrdenEgresoRequest = {
                 ...(editingOrden?.idOrdenEgreso && { idOrdenEgreso: editingOrden.idOrdenEgreso }),
+                tipoEgreso: data.tipoEgreso,
                 fecha: data.fecha,
                 destino: data.destino,
                 estado: data.estado,
                 detalles: data.detalles.map(detalle => ({
                     idProductoProveedor: detalle.idProductoProveedor,
                     cantidad: detalle.cantidad,
-                    tipoEgreso: detalle.tipoEgreso,
                     ubicacionId: parseInt(detalle.ubicacion),
                 }))
             }
@@ -147,6 +150,28 @@ export const OrdenEgresoDialog = ({ open, onOpenChange, editingOrden, onSubmit, 
                     <div className="space-y-6">
                         {/* Información general - formato más limpio y espaciado */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="space-y-2">
+                                <Label className="text-sm font-medium">Tipo de Egreso *</Label>
+                                <Select
+                                    value={watch("tipoEgreso") || "por_cantidad"}
+                                    onValueChange={(value) => {
+                                        if (value === "por_cantidad" || value === "por_lote") {
+                                            setValue("tipoEgreso", value);
+                                        }
+                                    }}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="por_cantidad">Por Cantidad</SelectItem>
+                                        <SelectItem value="por_lote">Por Lote</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                {errors.tipoEgreso && (
+                                    <p className="text-sm text-red-500">{errors.tipoEgreso?.message}</p>
+                                )}
+                            </div>
 
                             <div className="space-y-2">
                                 <Label htmlFor="fecha" className="text-sm font-medium">Fecha de Egreso *</Label>
@@ -191,28 +216,6 @@ export const OrdenEgresoDialog = ({ open, onOpenChange, editingOrden, onSubmit, 
                                     <p className="text-sm text-red-500">{errors.destino.message}</p>
                                 )}
                             </div>
-
-                            {/* <div className="space-y-2">
-                                <Label htmlFor="origen" className="text-sm font-medium">Origen de Compra *</Label>
-                                <Select
-                                    value={selectedOrigenCompra}
-                                    onValueChange={(value) => setValue("origenCompra", value)}
-                                >
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Selecciona origen" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {origenCompra.map((origen) => (
-                                            <SelectItem key={origen.value} value={origen.value}>
-                                                {origen.label}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                {errors.origenCompra && (
-                                    <p className="text-sm text-red-500">{errors.origenCompra.message}</p>
-                                )}
-                            </div> */}
                         </div>
 
                         <div className="space-y-2">
