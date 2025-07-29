@@ -13,7 +13,7 @@ import type { ListUbicaciones } from '@/modules/ubicaciones/types/UbicacionType'
 const detalleSchema = z.object({
     idProductoProveedor: z.number().min(1, "Debes seleccionar un producto"),
     cantidad: z.number().min(1, "Cantidad requerida"),
-    tipoEgreso: z.string().min(1, "Selecciona un tipo de egreso"),
+    // tipoEgreso: z.string().min(1, "Selecciona un tipo de egreso"),
     ubicacion: z.string().min(1, "Ubicación requerida"),
 });
 
@@ -69,6 +69,7 @@ export const OrdenEgresoDialog = ({ open, onOpenChange, editingOrden, onSubmit, 
         if (open && !editingOrden) {
             reset({
                 fecha: new Date(),
+                tipoEgreso: "por_cantidad",
                 destino: "",
                 estado: "pendiente",
                 detalles: []
@@ -95,7 +96,6 @@ export const OrdenEgresoDialog = ({ open, onOpenChange, editingOrden, onSubmit, 
         append({
             idProductoProveedor: 0,
             cantidad: 1,
-            tipoEgreso: "por_cantidad",
             ubicacion: "",
         });
     };
@@ -154,7 +154,7 @@ export const OrdenEgresoDialog = ({ open, onOpenChange, editingOrden, onSubmit, 
                             <div className="space-y-2">
                                 <Label className="text-sm font-medium">Tipo de Egreso *</Label>
                                 <Select
-                                    value={watch("tipoEgreso") || "por_cantidad"}
+                                    value={watch("tipoEgreso") ?? ""}
                                     onValueChange={(value) => {
                                         if (value === "por_cantidad" || value === "por_lote") {
                                             setValue("tipoEgreso", value);
@@ -162,15 +162,16 @@ export const OrdenEgresoDialog = ({ open, onOpenChange, editingOrden, onSubmit, 
                                     }}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue />
+                                        <SelectValue placeholder="Seleccione tipo de egreso" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="por_cantidad">Por Cantidad</SelectItem>
                                         <SelectItem value="por_lote">Por Lote</SelectItem>
                                     </SelectContent>
                                 </Select>
+
                                 {errors.tipoEgreso && (
-                                    <p className="text-sm text-red-500">{errors.tipoEgreso?.message}</p>
+                                    <p className="text-sm text-red-500">{errors.tipoEgreso.message}</p>
                                 )}
                             </div>
 
@@ -348,7 +349,7 @@ export const OrdenEgresoDialog = ({ open, onOpenChange, editingOrden, onSubmit, 
                                             </div>
 
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
-                                                <div className="space-y-2">
+                                                {/* <div className="space-y-2">
                                                     <Label className="text-sm font-medium">Tipo de Egreso *</Label>
                                                     <Select
                                                         value={detalles?.[index]?.tipoEgreso || "por_cantidad"}
@@ -365,7 +366,7 @@ export const OrdenEgresoDialog = ({ open, onOpenChange, editingOrden, onSubmit, 
                                                     {errors.detalles?.[index]?.tipoEgreso && (
                                                         <p className="text-sm text-red-500">{errors.detalles?.[index]?.tipoEgreso?.message}</p>
                                                     )}
-                                                </div>
+                                                </div> */}
 
                                                 {/* {detalles?.[index]?.tipoEgreso === "por_lote" && (
                                                     <div className="space-y-2">
