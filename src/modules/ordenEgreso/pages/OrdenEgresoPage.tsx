@@ -63,13 +63,12 @@ export const OrdenEgresoPage = () => {
             await deleteOrdenEgresoConDetalles(idOrdenEgreso);
             refreshData();
         } catch (error) {
-            console.error('Error al eliminar la orden de ingreso:', error);
-            setError('Error al eliminar la orden de ingreso');
+            console.error('Error al eliminar la orden de egreso:', error);
+            setError('Error al eliminar la orden de egreso');
         } finally {
             setIsDeleting(false);
         }
     };
-
 
     const getStatusBadge = (status: string) => {
         switch (status.toLowerCase()) {

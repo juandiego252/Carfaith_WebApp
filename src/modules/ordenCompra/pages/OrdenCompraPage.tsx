@@ -1,125 +1,117 @@
-import { Badge, Button, Card, CardContent, CardHeader, CardTitle, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/core/components"
-import { Building2, Search, MoreHorizontal, Edit, Trash2, Plus, MapPin } from "lucide-react"
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle, DialogHeader, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/core/components"
+import { Building2, Search, MoreHorizontal, Edit, Trash2, Plus, MapPin, Package2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import type { CreateOrdenComprasRequest, ListOrdenCompras } from "../types/OrdenComprasType";
 import { createOrdenCompras, deleteOrdenCompras, getOrdenesCompras, getProveedores, updateOrdenCompras } from "../services/OrdenCompraService";
 import { OrdenCompraDialog } from "../components/OrdenCompraDialog";
-import type { ListProveedores } from "@/modules/proveedores/types/ProveedorType";
+import { useOrdenCompraData } from "../hooks/useOrdenCompraData";
+import { Dialog, DialogContent, DialogTitle } from "@radix-ui/react-dialog";
 
 export const OrdenComprasPage = () => {
-  const [ordenesCompras, setoOrdenesCompras] = useState<ListOrdenCompras[]>([]);
-  const [proveedores, setProveedores] = useState<ListProveedores[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedEstado, setSelectedEstado] = useState("all")
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Estados para el diálogo
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingOrdenCompra, setEditingOrdenCompra] = useState<CreateOrdenComprasRequest | null>(null);
+  const [editingOrden, setEditingOrden] = useState<any>(null);
+  const [selectedOrden, setSelectedOrden] = useState<any>(null);
 
-  const fetchOrdenesCompras = async () => {
+  const {
+    loading,
+    asociaciones,
+    proveedores,
+    ordenesCompra,
+    refreshData
+  } = useOrdenCompraData();
+
+  const handleCreateOrden = () => {
+    setEditingOrden(null);
+    setIsCreateDialogOpen(true);
+  };
+
+  // Handle view order details
+  const handleViewDetails = (orden: ListOrdenCompras) => {
+    setSelectedOrden(orden);
+    setIsDetailsDialogOpen(true);
+  };
+
+  const handleEditOrden = (orden: any) => {
+    // Preparar datos para el formato esperado por el formulario de edición
+    const ordenForEdit: CreateOrdenComprasRequest = {
+      idOrden: orden.idOrden,
+      numeroOrden: orden.numeroOrden,
+      idProveedor: orden.idProveedor,
+      archivoPdf: orden.archivoPdf,
+      estado: orden.estado,
+      fechaCreacion: new Date(orden.fechaCreacion),
+      fechaEstimadaEntrega: new Date(orden.fechaEstimadaEntrega),
+      detalles: orden.detalles.map((detalle: any) => ({
+        idProductoProveedor: detalle.idProductoProveedor,
+        cantidad: detalle.cantidad,
+        precioUnitario: detalle.precioUnitario,
+      }))
+    };
+
+    setEditingOrden(ordenForEdit);
+    setIsCreateDialogOpen(true);
+  };
+
+  // Handle the delete action directly
+  const handleDelete = async (idOrden: number) => {
     try {
-      setLoading(true);
-      // const ordenesData = await getOrdenesCompras();
-      const [ordenesData, proveedoresData] = await Promise.all([
-        getOrdenesCompras(),
-        getProveedores()
-      ])
-      setoOrdenesCompras(ordenesData);
-      setProveedores(proveedoresData);
+      setIsDeleting(true);
       setError(null);
-    } catch (err) {
-      setError("Error al cargar los proveedores");
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    fetchOrdenesCompras();
-  }, []);
-
-  const handleSubmit = async (data: {
-    idOrden?: number;
-    numeroOrden?: string;
-    idProveedor?: number;
-    archivoPdf: string;
-    estado: string;
-    fechaEstimadaEntrega: Date;
-  }) => {
-    try {
-      setIsSubmitting(true);
-      const ordenData: CreateOrdenComprasRequest = {
-        idOrden: data.idOrden || 0,
-        numeroOrden: data.numeroOrden,
-        idProveedor: data.idProveedor || 0,
-        archivoPdf: data.archivoPdf,
-        estado: data.estado,
-        fechaCreacion: new Date(),
-        fechaEstimadaEntrega: data.fechaEstimadaEntrega
-      };
-      if (data.idOrden && data.idOrden > 0) {
-        await updateOrdenCompras(ordenData);
-      } else {
-        await createOrdenCompras(ordenData);
-      }
-      await fetchOrdenesCompras();
-      setIsDialogOpen(false);
-      setEditingOrdenCompra(null);
-      setError(null);
-    } catch (error) {
-      console.error('Error al guardar la Orden de Compra: ', error);
-      setError('Error al guardar la Orden de Compra');
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
-
-  const handleEditOrdenCompra = (ordenCompra: ListOrdenCompras) => {
-    setEditingOrdenCompra({
-      idOrden: ordenCompra.idOrden,
-      numeroOrden: ordenCompra.numeroOrden,
-      idProveedor: ordenCompra.idProveedor,
-      archivoPdf: ordenCompra.archivoPdf,
-      estado: ordenCompra.estado,
-      fechaCreacion: ordenCompra.fechaCreacion,
-      fechaEstimadaEntrega: ordenCompra.fechaEstimadaEntrega
-    });
-    setIsDialogOpen(true);
-  }
-
-  const handleDeleteOrdenCompra = async (idOrden: number) => {
-    try {
-      setIsSubmitting(true);
       await deleteOrdenCompras(idOrden);
-      await fetchOrdenesCompras();
-      setError(null);
+      refreshData();
     } catch (error) {
-      console.error('Error al eliminar la Orden de Compra:', error);
-      setError('Error al eliminar la Orden de Compra');
+      console.error('Error al eliminar la orden de compra:', error);
+      setError('Error al eliminar la orden de compra');
     } finally {
-      setIsSubmitting(false);
+      setIsDeleting(false);
     }
+  };
 
+  const getStatusBadge = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'pendiente':
+        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">Pendiente</Badge>;
+      case 'en proceso':
+        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">En Proceso</Badge>;
+      case 'completada':
+        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Completada</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
+  const inProcessCount = ordenesCompra.filter(orden => orden.estado.toLowerCase() === 'En Proceso').length;
+  const completedCount = ordenesCompra.filter(orden => orden.estado.toLowerCase() === 'Entregado').length;
+
+  const handleSubmit = async (data: CreateOrdenComprasRequest): Promise<void> => {
+    try {
+      // setIsSubmitting(true);
+      setError(null);
+      if (data.idOrden) {
+        // Si hay ID, es una edición
+        await updateOrdenCompras(data);
+      } else {
+        // Si no hay ID, es una creación
+        await createOrdenCompras(data);
+      }
+      setIsCreateDialogOpen(false);
+      setEditingOrden(null);
+      refreshData();
+    } catch (error) {
+      console.error('Error al guardar la orden de compra:', error);
+      setError('Error al guardar la orden de compra');
+    } finally {
+      // setIsSubmitting(false);
+    }
   }
-
-  // Filtrado de proveedores
-  const filteredOrdenCompras = ordenesCompras.filter(orden => {
-    // Filtrar por término de búsqueda
-    const searchFilter = searchTerm.toLowerCase() === '' ||
-      orden.nombreProveedor.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      orden.numeroOrden.toLowerCase().includes(searchTerm.toLowerCase());
-
-    // Filtrar por estado
-    const estadoFilter = selectedEstado === 'all' ||
-      (selectedEstado === 'Entregado' && orden.estado === 'Entregado') ||
-      (selectedEstado === 'En Proceso' && orden.estado === 'En Proceso');
-
-    return searchFilter && estadoFilter;
-  });
 
   return (
     <div className="space-y-6">
@@ -127,18 +119,29 @@ export const OrdenComprasPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Proveedores</CardTitle>
+            <CardTitle className="text-sm font-medium">Órdenes de Compra en Proceso</CardTitle>
             <Building2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{ordenesCompras.length}</div>
-            <p className="text-xs text-muted-foreground">{ordenesCompras.filter((p) => p.estado).length} activos</p>
+            {/* <div className="text-2xl font-bold">{ordenesCompra.length}</div> */}
+            <p className="text-xs text-muted-foreground">{inProcessCount} En Proceso</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Proveedores Locales</CardTitle>
+            <CardTitle className="text-sm font-medium">Órdenes de Compra Entregados</CardTitle>
+            <Building2 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{ordenesCompra.length}</div>
+            <p className="text-xs text-muted-foreground">{completedCount} Entregados</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Proveedores</CardTitle>
             <MapPin className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
@@ -154,14 +157,9 @@ export const OrdenComprasPage = () => {
             <CardTitle>Ordenes de Compras</CardTitle>
           </div>
           <Button
-            onClick={() => {
-              setEditingOrdenCompra(null);
-              setIsDialogOpen(true);
-            }}
-            disabled={isSubmitting}
-          >
+            onClick={handleCreateOrden}>
             <Plus className="mr-2 h-4 w-4" />
-            Nueva Orden de Compra
+            Nueva Órden de Compra
           </Button>
         </CardHeader>
         <CardContent>
@@ -176,20 +174,6 @@ export const OrdenComprasPage = () => {
                 className="pl-10"
               />
             </div>
-            {/* <Select value={selectedTipo} onValueChange={setSelectedTipo}>
-              <SelectTrigger className="w-full sm:w-[180px]">
-                <Filter className="mr-2 h-4 w-4" />
-                <SelectValue placeholder="Tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos los tipos</SelectItem>
-                {tiposProveedor.map((tipo) => (
-                  <SelectItem key={tipo.value} value={tipo.value}>
-                    {tipo.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select> */}
             <Select value={selectedEstado} onValueChange={setSelectedEstado}>
               <SelectTrigger className="w-full sm:w-[150px]">
                 <SelectValue placeholder="Estado" />
@@ -230,7 +214,7 @@ export const OrdenComprasPage = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredOrdenCompras.map((orden) => (
+                  {ordenesCompra.map((orden) => (
                     <TableRow key={orden.idOrden}>
                       <TableCell>{orden.numeroOrden}</TableCell>
                       <TableCell>{orden.nombreProveedor}</TableCell>
@@ -268,15 +252,14 @@ export const OrdenComprasPage = () => {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={() => handleEditOrdenCompra(orden)}>
+                            <DropdownMenuItem onClick={() => handleEditOrden(orden)}>
                               <Edit className="mr-2 h-4 w-4" />
                               Editar
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
                               className="text-red-600"
-                              disabled={isSubmitting}
-                              onClick={() => handleDeleteOrdenCompra(orden.idOrden)}
+                              onClick={() => handleDelete(orden.idOrden)}
                             >
                               <Trash2 className="mr-2 h-4 w-4" />
                               Eliminar
@@ -291,7 +274,7 @@ export const OrdenComprasPage = () => {
             </div>
           )}
 
-          {!loading && !error && ordenesCompras.length === 0 && (
+          {!loading && !error && ordenesCompra.length === 0 && (
             <div className="text-center py-8">
               <Building2 className="mx-auto h-12 w-12 text-gray-400" />
               <h3 className="mt-2 text-sm font-medium text-gray-900">No hay Ordenes de Compra</h3>
@@ -304,12 +287,75 @@ export const OrdenComprasPage = () => {
       </Card>
       {/* Dialog para crear/editar proveedor */}
       <OrdenCompraDialog
-        open={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
-        editingOrdenCompra={editingOrdenCompra}
+        open={isCreateDialogOpen}
+        onOpenChange={setIsCreateDialogOpen}
+        editingOrden={editingOrden}
+        asociaciones={asociaciones}
         proveedores={proveedores}
         onSubmit={handleSubmit}
       />
+
+      <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
+        <DialogContent className="max-w-6xl max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              <Package2 className="h-5 w-5" />
+              Detalles de la Órden de Compra #{selectedOrden?.idOrden}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="overflow-y-auto max-h-[75vh] space-y-6 mt-4 pr-2">
+            {selectedOrden && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <h4 className="text-sm font-medium text-muted-foreground">Fecha</h4>
+                    <p>{new Date(selectedOrden.fecha).toLocaleDateString()}</p>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-muted-foreground">Estado</h4>
+                    <p>{getStatusBadge(selectedOrden.estado)}</p>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-muted-foreground">Total productos</h4>
+                    <p>{selectedOrden.detalles.length}</p>
+                  </div>
+                </div>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Productos</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Table className="w-full">
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-1/4">Producto</TableHead>
+                          <TableHead className="w-[15%]">Cantidad</TableHead>
+                          <TableHead className="w-[20%]">Tipo Egreso</TableHead>
+                          <TableHead className="w-[20%]">Ubicación</TableHead>
+                          <TableHead className="w-[15%]">Lote</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {selectedOrden && selectedOrden.detalles && selectedOrden.detalles.map((detalle: any, index: any) => (
+                          <TableRow key={index}>
+                            <TableCell>{detalle.nombreProducto}</TableCell>
+                            <TableCell>{detalle.cantidad}</TableCell>
+                            <TableCell>{selectedOrden.tipoEgreso}</TableCell>
+                            <TableCell>{detalle.nombreUbicacion}</TableCell>
+                            <TableCell>{detalle.numeroLote || 'N/A'}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

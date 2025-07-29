@@ -33,13 +33,18 @@ export const createOrdenCompras = async (data: CreateOrdenComprasRequest) => {
         : formatDateLocal(new Date());
 
     try {
-        const response = await carfaithApi.post<CreateOrdenComprasRequest>('/OrdenDeCompra/crearOrdenDeCompra', {
+        const response = await carfaithApi.post<CreateOrdenComprasRequest>('/OrdenDeCompra/CrearOrdenCompra', {
             numeroOrden: data.numeroOrden,
             idProveedor: data.idProveedor,
             archivoPdf: data.archivoPdf,
             estado: data.estado,
             fechaCreacion: formattedDateCreacion,
             fechaEstimadaEntrega: formattedDateEntrega,
+            detalles: data.detalles.map(detalle => ({
+                idProductoProveedor: detalle.idProductoProveedor,
+                cantidad: detalle.cantidad,
+                precioUnitario: detalle.precioUnitario,
+            }))
         });
         return response.data;
     } catch (error) {
@@ -66,6 +71,11 @@ export const updateOrdenCompras = async (data: CreateOrdenComprasRequest) => {
             estado: data.estado,
             fechaCreacion: formattedDateCreacion,
             fechaEstimadaEntrega: formattedDateEntrega,
+            detalles: data.detalles.map(detalle => ({
+                idProductoProveedor: detalle.idProductoProveedor,
+                cantidad: detalle.cantidad,
+                precioUnitario: detalle.precioUnitario,
+            }))
         });
         return response.data;
     } catch (error) {

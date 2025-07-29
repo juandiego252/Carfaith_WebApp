@@ -27,7 +27,7 @@ export const createOrdenEgresoDetalles = async (data: CreateOrdenEgresoRequest) 
 
 export const getOrdenesEgresoDetalles = async () => {
     try {
-        const response = await carfaithApi.get("/OrdenEgreso/ListarOrdenesIngresoConDetalles");
+        const response = await carfaithApi.get("/OrdenEgreso/ListarOrdenesEgresoConDetalles");
         return response.data;
     } catch (error) {
         console.error("Error buscando ordenes de egreso detalles:", error);
