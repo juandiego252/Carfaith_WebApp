@@ -80,9 +80,9 @@ export const OrdenIngresoPage = () => {
         switch (status.toLowerCase()) {
             case 'pendiente':
                 return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">Pendiente</Badge>;
-            case 'en proceso':
+            case 'en_proceso':
                 return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">En Proceso</Badge>;
-            case 'completada':
+            case 'completado':
                 return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Completada</Badge>;
             default:
                 return <Badge variant="outline">{status}</Badge>;
@@ -90,8 +90,8 @@ export const OrdenIngresoPage = () => {
     };
 
     const pendingCount = ordenesIngreso.filter(orden => orden.estado.toLowerCase() === 'pendiente').length;
-    const inProcessCount = ordenesIngreso.filter(orden => orden.estado.toLowerCase() === 'en proceso').length;
-    const completedCount = ordenesIngreso.filter(orden => orden.estado.toLowerCase() === 'completada').length;
+    const inProcessCount = ordenesIngreso.filter(orden => orden.estado.toLowerCase() === 'en_proceso').length;
+    const completedCount = ordenesIngreso.filter(orden => orden.estado.toLowerCase() === 'completado').length;
 
 
     const handleSubmit = async (data: CreateOrdenIngresoDetalleRequest): Promise<void> => {
@@ -197,64 +197,66 @@ export const OrdenIngresoPage = () => {
                             </p>
                         </div>
                     ) : (
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Orden de Compra</TableHead>
-                                    <TableHead>Proveedor</TableHead>
-                                    <TableHead>Fecha</TableHead>
-                                    <TableHead>Estado</TableHead>
-                                    <TableHead>Productos</TableHead>
-                                    <TableHead className="text-right">Acciones</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {ordenesIngreso.map((orden) => (
-                                    <TableRow key={orden.idOrdenIngreso}>
-                                        <TableCell>{(orden as any).numeroOrden}</TableCell>
-                                        <TableCell>{(orden as any).nombreProveedor}</TableCell>
-                                        <TableCell>
-                                            <div className="flex items-center">
-                                                <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
-                                                {new Date(orden.fecha).toLocaleDateString()}
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>{getStatusBadge(orden.estado)}</TableCell>
-                                        <TableCell>{orden.detalles.length} productos</TableCell>
-                                        <TableCell className="text-right">
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" className="h-8 w-8 p-0">
-                                                        <MoreHorizontal className="h-4 w-4" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                                                    <DropdownMenuItem onClick={() => handleViewDetails(orden)}>
-                                                        <Eye className="mr-2 h-4 w-4" />
-                                                        Ver detalles
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem
-                                                        onClick={() => handleEditOrden(orden)}
-                                                    >
-                                                        <Edit className="mr-2 h-4 w-4" />
-                                                        Editar
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuSeparator />
-                                                    <DropdownMenuItem
-                                                        className='text-red-600'
-                                                        onClick={() => handleDelete(orden.idOrdenIngreso)}
-                                                    >
-                                                        <Trash2 className="mr-2 h-4 w-4 " />
-                                                        Eliminar
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </TableCell>
+                        <div className="rounded-md border text-center">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead className="text-center">Orden de Compra</TableHead>
+                                        <TableHead className="text-center">Proveedor</TableHead>
+                                        <TableHead className="text-center">Fecha</TableHead>
+                                        <TableHead className="text-center">Estado</TableHead>
+                                        <TableHead className="text-center">Productos</TableHead>
+                                        <TableHead className="text-right">Acciones</TableHead>
                                     </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
+                                </TableHeader>
+                                <TableBody>
+                                    {ordenesIngreso.map((orden) => (
+                                        <TableRow key={orden.idOrdenIngreso}>
+                                            <TableCell>{(orden as any).numeroOrden}</TableCell>
+                                            <TableCell>{(orden as any).nombreProveedor}</TableCell>
+                                            <TableCell>
+                                                <div className="flex items-center justify-center">
+                                                    <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
+                                                    {new Date(orden.fecha).toLocaleDateString()}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>{getStatusBadge(orden.estado)}</TableCell>
+                                            <TableCell>{orden.detalles.length} productos</TableCell>
+                                            <TableCell className="text-right">
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button variant="ghost" className="h-8 w-8 p-0">
+                                                            <MoreHorizontal className="h-4 w-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                                                        <DropdownMenuItem onClick={() => handleViewDetails(orden)}>
+                                                            <Eye className="mr-2 h-4 w-4" />
+                                                            Ver detalles
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem
+                                                            onClick={() => handleEditOrden(orden)}
+                                                        >
+                                                            <Edit className="mr-2 h-4 w-4" />
+                                                            Editar
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuSeparator />
+                                                        <DropdownMenuItem
+                                                            className='text-red-600'
+                                                            onClick={() => handleDelete(orden.idOrdenIngreso)}
+                                                        >
+                                                            <Trash2 className="mr-2 h-4 w-4 " />
+                                                            Eliminar
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </div>
                     )}
                 </CardContent>
             </Card>

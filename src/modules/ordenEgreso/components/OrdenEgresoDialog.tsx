@@ -17,7 +17,7 @@ const detalleSchema = z.object({
     ubicacion: z.string().min(1, "Ubicación requerida"),
 });
 
-const ordenIngresoSchema = z.object({
+const ordenEgresoSchema = z.object({
     tipoEgreso: z.enum(["por_cantidad", "por_lote"]),
     fecha: z
         .date()
@@ -29,7 +29,7 @@ const ordenIngresoSchema = z.object({
     detalles: z.array(detalleSchema).min(1, "Agrega al menos un producto"),
 });
 
-type FormValues = z.infer<typeof ordenIngresoSchema>;
+type FormValues = z.infer<typeof ordenEgresoSchema>;
 
 interface Props {
     open: boolean;
@@ -46,7 +46,7 @@ export const OrdenEgresoDialog = ({ open, onOpenChange, editingOrden, onSubmit, 
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const { register, handleSubmit, reset, setValue, watch, control, formState: { errors } } = useForm<FormValues>({
-        resolver: zodResolver(ordenIngresoSchema),
+        resolver: zodResolver(ordenEgresoSchema),
         defaultValues: {
             tipoEgreso: "por_cantidad",
             fecha: new Date(),
@@ -62,6 +62,7 @@ export const OrdenEgresoDialog = ({ open, onOpenChange, editingOrden, onSubmit, 
     });
 
     const selectedEstado = watch("estado");
+    const selectedEstadoEgreso = watch("destino");
     const detalles = watch("detalles");
 
     useEffect(() => {
@@ -137,12 +138,12 @@ export const OrdenEgresoDialog = ({ open, onOpenChange, editingOrden, onSubmit, 
 
                 <DialogHeader className="pb-4">
                     <DialogTitle className="text-xl font-semibold">
-                        {editingOrden ? "Editar Orden de Ingreso" : "Nueva Orden de Ingreso"}
+                        {editingOrden ? "Editar Orden de Egreso" : "Nueva Orden de Egreso"}
                     </DialogTitle>
                     <DialogDescription>
                         {editingOrden
-                            ? "Modifica la información de la orden de ingreso"
-                            : "Completa la información para crear una nueva orden de ingreso"}
+                            ? "Modifica la información de la orden de egreso"
+                            : "Completa la información para crear una nueva orden de egreso"}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -206,12 +207,18 @@ export const OrdenEgresoDialog = ({ open, onOpenChange, editingOrden, onSubmit, 
 
                             <div className="space-y-2">
                                 <Label htmlFor="destino" className="text-sm font-medium">Destino Egreso *</Label>
-                                <Input
-                                    id="destino"
-                                    placeholder=""
-                                    className="w-full"
-                                    {...register("destino")}
-                                />
+                                <Select
+                                    value={selectedEstadoEgreso}
+                                    onValueChange={(value) => setValue("destino", value)}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Selecciona destino de Egreso" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Bodega Principal">Bodega Principal</SelectItem>
+                                        <SelectItem value="Local de Venta">Local de Venta</SelectItem>
+                                    </SelectContent>
+                                </Select>
                                 {errors.destino && (
                                     <p className="text-sm text-red-500">{errors.destino.message}</p>
                                 )}

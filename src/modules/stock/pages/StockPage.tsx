@@ -1,5 +1,5 @@
-import { Button, Card, CardContent, CardHeader, CardTitle, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, Input, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/core/components"
-import { Building2, Search, MoreHorizontal, Edit, Trash2, Plus } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle, Input, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/core/components"
+import { Building2, Search, Warehouse } from "lucide-react"
 import { useEffect, useState } from "react"
 import type { ListStock } from "../types/StockType";
 import { getStock } from "../services/StockService";
@@ -9,11 +9,6 @@ export const StockPage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState("")
-    const [isSubmitting, setIsSubmitting] = useState(false);
-
-    // Estados para el diálogo
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
-    // const [editingStock, setEditingStock] = useState<CreateUbicacionesRequest | null>(null);
 
     const fetchStock = async () => {
         try {
@@ -35,56 +30,6 @@ export const StockPage = () => {
         fetchStock();
     }, []);
 
-    // const handleSubmit = async (data: {
-    //     idUbicacion?: number;
-    //     lugarUbicacion: string;
-    // }) => {
-    //     try {
-    //         setIsSubmitting(true);
-    //         const ubicacionData: CreateUbicacionesRequest = {
-    //             idUbicacion: data.idUbicacion || 0,
-    //             lugarUbicacion: data.lugarUbicacion,
-    //         };
-    //         if (data.idUbicacion && data.idUbicacion > 0) {
-    //             await updateUbicaciones(ubicacionData);
-    //         } else {
-    //             await createUbicaciones(ubicacionData);
-    //         }
-    //         await fetchUbicaciones();
-    //         setIsDialogOpen(false);
-    //         setEditingubicacion(null);
-    //         setError(null);
-    //     } catch (error) {
-    //         console.error('Error al guardar la Ubicación: ', error);
-    //         setError('Error al guardar la Ubicación');
-    //     } finally {
-    //         setIsSubmitting(false);
-    //     }
-    // }
-
-    // const handleEditUbicaciones = (ubicacion: ListStock) => {
-    //     setEditingubicacion({
-    //         idUbicacion: ubicacion.idUbicacion,
-    //         lugarUbicacion: ubicacion.lugarUbicacion,
-    //     });
-    //     setIsDialogOpen(true);
-    // }
-
-    // const handleDeleteUbicaciones = async (idUbicacion: number) => {
-    //     try {
-    //         setIsSubmitting(true);
-    //         await deleteUbicaciones(idUbicacion);
-    //         await fetchUbicaciones();
-    //         setError(null);
-    //     } catch (error) {
-    //         console.error('Error al eliminar la Ubicación:', error);
-    //         setError('Error al eliminar la Ubicación');
-    //     } finally {
-    //         setIsSubmitting(false);
-    //     }
-
-    // }
-
     // Filtrado de ubicaciones
     const filteredStock = stock.filter(stock => {
         // Filtrar por término de búsqueda
@@ -99,21 +44,36 @@ export const StockPage = () => {
         return searchFilter;
     });
 
+    const productosConStock = stock.filter(s => s.cantidad > 0).length;
+    const productosSinStock = stock.filter(s => s.cantidad === 0).length;
+
     return (
         <div className="space-y-6">
             {/* Header con estadísticas */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                {/* Card: Productos con stock */}
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Stock</CardTitle>
-                        <Building2 className="h-4 w-4 text-muted-foreground" />
+                        <CardTitle className="text-sm font-medium">Productos con Stock</CardTitle>
+                        <Warehouse className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{stock.length}</div>
-                        {/* <p className="text-xs text-muted-foreground">{transferencias.filter((p) => p.estado).length} activos</p>s */}
+                        <div className="text-2xl font-bold">{productosConStock}</div>
+                    </CardContent>
+                </Card>
+
+                {/* Card: Productos sin stock */}
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Productos sin Stock</CardTitle>
+                        <Warehouse className="h-4 w-4 text-red-500" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold text-red-500">{productosSinStock}</div>
                     </CardContent>
                 </Card>
             </div>
+
 
             {/* Controles */}
             <Card>
@@ -121,16 +81,6 @@ export const StockPage = () => {
                     <div>
                         <CardTitle>Stock de Productos</CardTitle>
                     </div>
-                    {/* <Button
-                        onClick={() => {
-                            setEditingubicacion(null);
-                            setIsDialogOpen(true);
-                        }}
-                        disabled={isSubmitting}
-                    >
-                        <Plus className="mr-2 h-4 w-4" />
-                        Nueva Ubicación
-                    </Button> */}
                 </CardHeader>
                 <CardContent>
                     {/* Filtros */}
@@ -138,7 +88,7 @@ export const StockPage = () => {
                         <div className="relative flex-1">
                             <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                             <Input
-                                placeholder="Buscar por ubicación..."
+                                placeholder="Buscar por nombre, código o proveedor..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="pl-10"
@@ -170,7 +120,6 @@ export const StockPage = () => {
                                         <TableHead className="text-center">Tipo de Proveedor</TableHead>
                                         <TableHead className="text-center">Ubicación del Producto</TableHead>
                                         <TableHead className="text-center">Cantidad en Stock</TableHead>
-                                        <TableHead className="text-right">Acciones</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -193,31 +142,6 @@ export const StockPage = () => {
                                             </TableCell>
                                             <TableCell>
                                                 {stock.cantidad}
-                                            </TableCell>
-                                            <TableCell className="text-right">
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
-                                                        <Button variant="ghost" className="h-8 w-8 p-0">
-                                                            <MoreHorizontal className="h-4 w-4" />
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end">
-                                                        <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                                                        {/* <DropdownMenuItem onClick={() => handleEditUbicaciones(ubicacion)}>
-                                                            <Edit className="mr-2 h-4 w-4" />
-                                                            Editar
-                                                        </DropdownMenuItem> */}
-                                                        <DropdownMenuSeparator />
-                                                        {/* <DropdownMenuItem
-                                                            className="text-red-600"
-                                                            disabled={isSubmitting}
-                                                            onClick={() => handleDeleteUbicaciones(ubicacion.idUbicacion)}
-                                                        >
-                                                            <Trash2 className="mr-2 h-4 w-4" />
-                                                            Eliminar
-                                                        </DropdownMenuItem> */}
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
                                             </TableCell>
                                         </TableRow>
                                     ))}

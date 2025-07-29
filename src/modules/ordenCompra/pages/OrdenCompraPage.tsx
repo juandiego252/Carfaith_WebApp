@@ -1,5 +1,5 @@
 import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, DialogHeader, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/core/components"
-import { Building2, Search, MoreHorizontal, Edit, Trash2, Plus, MapPin, Package2, Eye } from "lucide-react"
+import { Building2, Search, MoreHorizontal, Edit, Trash2, Plus, MapPin, Package2, Eye, Calendar } from "lucide-react"
 import { useState } from "react"
 import type { CreateOrdenComprasRequest, ListOrdenCompras } from "../types/OrdenComprasType";
 import { createOrdenCompras, deleteOrdenCompras, updateOrdenCompras } from "../services/OrdenCompraService";
@@ -85,8 +85,19 @@ export const OrdenComprasPage = () => {
     }
   };
 
-  const inProcessCount = ordenesCompra.filter(orden => orden.estado.toLowerCase() === 'En Proceso').length;
-  const completedCount = ordenesCompra.filter(orden => orden.estado.toLowerCase() === 'Entregado').length;
+  const inProcessCount = ordenesCompra.filter(orden => orden.estado === 'En Proceso').length;
+  const completedCount = ordenesCompra.filter(orden => orden.estado === 'Entregado').length;
+
+  const ordenesFiltradas = ordenesCompra.filter((orden) => {
+    const searchMatch =
+      orden.numeroOrden?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      orden.nombreProveedor?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const estadoMatch =
+      selectedEstado === "all" || selectedEstado === "" || orden.estado === selectedEstado;
+
+    return searchMatch && estadoMatch;
+  });
 
   const handleSubmit = async (data: CreateOrdenComprasRequest): Promise<void> => {
     try {
@@ -120,8 +131,7 @@ export const OrdenComprasPage = () => {
             <Building2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            {/* <div className="text-2xl font-bold">{ordenesCompra.length}</div> */}
-            <p className="text-xs text-muted-foreground">{inProcessCount} En Proceso</p>
+            <div className="text-2xl font-bold">{inProcessCount}</div>
           </CardContent>
         </Card>
 
@@ -131,8 +141,7 @@ export const OrdenComprasPage = () => {
             <Building2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{ordenesCompra.length}</div>
-            <p className="text-xs text-muted-foreground">{completedCount} Entregados</p>
+            <div className="text-2xl font-bold">{completedCount}</div>
           </CardContent>
         </Card>
 
@@ -166,7 +175,7 @@ export const OrdenComprasPage = () => {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Buscar por nombre, RUC o email..."
+                placeholder="Buscar por orden o proveedor..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -208,17 +217,17 @@ export const OrdenComprasPage = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Número de Orden</TableHead>
-                    <TableHead>Proveedor</TableHead>
-                    <TableHead>Orden de Compra</TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead>Fecha de Creación</TableHead>
-                    <TableHead>Fecha de Entrega Estimada</TableHead>
+                    <TableHead className="text-center">Número de Orden</TableHead>
+                    <TableHead className="text-center">Proveedor</TableHead>
+                    <TableHead className="text-center">Orden de Compra</TableHead>
+                    <TableHead className="text-center">Estado</TableHead>
+                    <TableHead className="text-center">Fecha de Creación</TableHead>
+                    <TableHead className="text-center">Fecha de Entrega Estimada</TableHead>
                     <TableHead className="text-right">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {ordenesCompra.map((orden) => (
+                  {ordenesFiltradas.map((orden) => (
                     <TableRow key={orden.idOrden}>
                       <TableCell>{orden.numeroOrden}</TableCell>
                       <TableCell>{orden.nombreProveedor}</TableCell>
@@ -242,10 +251,16 @@ export const OrdenComprasPage = () => {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {orden.fechaCreacion.toString().slice(0, 10)}
+                        <div className="flex items-center justify-center">
+                          <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
+                          {new Date(orden.fechaCreacion).toLocaleDateString()}
+                        </div>
                       </TableCell>
                       <TableCell>
-                        {orden.fechaEstimadaEntrega.toString().slice(0, 10)}
+                        <div className="flex items-center justify-center">
+                          <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
+                          {new Date(orden.fechaEstimadaEntrega).toLocaleDateString()}
+                        </div>
                       </TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
