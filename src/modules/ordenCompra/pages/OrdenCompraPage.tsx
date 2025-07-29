@@ -1,11 +1,11 @@
-import { Badge, Button, Card, CardContent, CardHeader, CardTitle, DialogHeader, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/core/components"
-import { Building2, Search, MoreHorizontal, Edit, Trash2, Plus, MapPin, Package2 } from "lucide-react"
-import { useEffect, useState } from "react"
+import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, DialogHeader, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/core/components"
+import { Building2, Search, MoreHorizontal, Edit, Trash2, Plus, MapPin, Package2, Eye } from "lucide-react"
+import { useState } from "react"
 import type { CreateOrdenComprasRequest, ListOrdenCompras } from "../types/OrdenComprasType";
-import { createOrdenCompras, deleteOrdenCompras, getOrdenesCompras, getProveedores, updateOrdenCompras } from "../services/OrdenCompraService";
+import { createOrdenCompras, deleteOrdenCompras, updateOrdenCompras } from "../services/OrdenCompraService";
 import { OrdenCompraDialog } from "../components/OrdenCompraDialog";
 import { useOrdenCompraData } from "../hooks/useOrdenCompraData";
-import { Dialog, DialogContent, DialogTitle } from "@radix-ui/react-dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@radix-ui/react-dialog";
 
 export const OrdenComprasPage = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -14,9 +14,6 @@ export const OrdenComprasPage = () => {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedEstado, setSelectedEstado] = useState("all")
   const [isDeleting, setIsDeleting] = useState(false);
-
-  // Estados para el diálogo
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingOrden, setEditingOrden] = useState<any>(null);
   const [selectedOrden, setSelectedOrden] = useState<any>(null);
 
@@ -155,6 +152,7 @@ export const OrdenComprasPage = () => {
         <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
           <div>
             <CardTitle>Ordenes de Compras</CardTitle>
+            <CardDescription>Gestiona las órdenes de compra de mercancía.</CardDescription>
           </div>
           <Button
             onClick={handleCreateOrden}>
@@ -186,12 +184,6 @@ export const OrdenComprasPage = () => {
             </Select>
           </div>
 
-          {loading && (
-            <div className="flex justify-center my-8">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-            </div>
-          )}
-
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
               <strong className="font-bold">Error:</strong>
@@ -199,7 +191,19 @@ export const OrdenComprasPage = () => {
             </div>
           )}
 
-          {!loading && !error && (
+          {loading ? (
+            <div className="flex justify-center my-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            </div>
+          ) : ordenesCompra.length === 0 ? (
+            <div className="text-center py-8">
+              <Package2 className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900">No hay órdenes de compra</h3>
+              <p className="mt-1 text-sm text-gray-500">
+                Comienza creando una nueva orden de compra.
+              </p>
+            </div>
+          ) : (
             <div className="rounded-md border text-center">
               <Table>
                 <TableHeader>
@@ -252,6 +256,10 @@ export const OrdenComprasPage = () => {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                            <DropdownMenuItem onClick={() => handleViewDetails(orden)}>
+                              <Eye className="mr-2 h-4 w-4" />
+                              Ver detalles
+                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleEditOrden(orden)}>
                               <Edit className="mr-2 h-4 w-4" />
                               Editar
@@ -273,18 +281,9 @@ export const OrdenComprasPage = () => {
               </Table>
             </div>
           )}
-
-          {!loading && !error && ordenesCompra.length === 0 && (
-            <div className="text-center py-8">
-              <Building2 className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No hay Ordenes de Compra</h3>
-              <p className="mt-1 text-sm text-gray-500">
-                No se encontraron Ordenes de Compra con los filtros aplicados.
-              </p>
-            </div>
-          )}
         </CardContent>
       </Card>
+
       {/* Dialog para crear/editar proveedor */}
       <OrdenCompraDialog
         open={isCreateDialogOpen}
@@ -302,6 +301,9 @@ export const OrdenComprasPage = () => {
               <Package2 className="h-5 w-5" />
               Detalles de la Órden de Compra #{selectedOrden?.idOrden}
             </DialogTitle>
+            <DialogDescription className="sr-only">
+              Detalles de la orden de compra seleccionada.
+            </DialogDescription>
           </DialogHeader>
 
           <div className="overflow-y-auto max-h-[75vh] space-y-6 mt-4 pr-2">
@@ -309,8 +311,12 @@ export const OrdenComprasPage = () => {
               <div className="space-y-6">
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <h4 className="text-sm font-medium text-muted-foreground">Fecha</h4>
-                    <p>{new Date(selectedOrden.fecha).toLocaleDateString()}</p>
+                    <h4 className="text-sm font-medium text-muted-foreground">Fecha de Creación</h4>
+                    <p>{new Date(selectedOrden.fechaCreacion).toLocaleDateString()}</p>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-muted-foreground">Fecha de Entrega Estimada</h4>
+                    <p>{new Date(selectedOrden.fechaEstimadaEntrega).toLocaleDateString()}</p>
                   </div>
                   <div>
                     <h4 className="text-sm font-medium text-muted-foreground">Estado</h4>
@@ -332,9 +338,9 @@ export const OrdenComprasPage = () => {
                         <TableRow>
                           <TableHead className="w-1/4">Producto</TableHead>
                           <TableHead className="w-[15%]">Cantidad</TableHead>
-                          <TableHead className="w-[20%]">Tipo Egreso</TableHead>
-                          <TableHead className="w-[20%]">Ubicación</TableHead>
-                          <TableHead className="w-[15%]">Lote</TableHead>
+                          {/* <TableHead className="w-[20%]">Tipo Egreso</TableHead> */}
+                          {/* <TableHead className="w-[20%]">Ubicación</TableHead> */}
+                          {/* <TableHead className="w-[15%]">Lote</TableHead> */}
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -342,9 +348,9 @@ export const OrdenComprasPage = () => {
                           <TableRow key={index}>
                             <TableCell>{detalle.nombreProducto}</TableCell>
                             <TableCell>{detalle.cantidad}</TableCell>
-                            <TableCell>{selectedOrden.tipoEgreso}</TableCell>
-                            <TableCell>{detalle.nombreUbicacion}</TableCell>
-                            <TableCell>{detalle.numeroLote || 'N/A'}</TableCell>
+                            {/* <TableCell>{selectedOrden.tipoEgreso}</TableCell> */}
+                            {/* <TableCell>{detalle.nombreUbicacion}</TableCell> */}
+                            {/* <TableCell>{detalle.numeroLote || 'N/A'}</TableCell> */}
                           </TableRow>
                         ))}
                       </TableBody>

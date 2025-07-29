@@ -11,43 +11,43 @@ export const useOrdenCompraData = () => {
     const [ordenesCompra, setOrdenesCompra] = useState<ListOrdenCompras[]>([]);
     const [proveedores, setProveedores] = useState<ListProveedores[]>([]);
 
-
     const loadData = async () => {
         setIsloading(true);
         try {
-
             const [asociacionesData, proveedoresData, ordenesCompraData] = await Promise.all([
                 getDetalleProductoProveedor(),
                 getProveedores(),
                 getOrdenesCompras(),
             ]);
+
             setAsociaciones(asociacionesData);
             setProveedores(proveedoresData);
-            setOrdenesCompra(ordenesCompraData);
 
-            const processedOrdenesCompra = ordenesCompraData.map((orden: { detalles: { idProductoProveedor: number; }[]; }) => {
-
-                const detallesWithNames = orden.detalles.map((detalle: { idProductoProveedor: number; }) => {
+            const processedOrdenesCompra = ordenesCompraData.map((orden) => {
+                const detallesWithNames = orden.detalles.map((detalle) => {
                     const producto = asociacionesData.find(p => p.idProductoProveedor === detalle.idProductoProveedor);
 
                     return {
                         ...detalle,
-                        nombreProducto: producto ? `${producto.codigoProducto} - ${producto.nombreProducto}` : 'Producto no encontrado',
-                    }
+                        nombreProducto: producto
+                            ? `${producto.codigoProducto} - ${producto.nombreProducto}`
+                            : 'Producto no encontrado',
+                    };
                 });
 
                 return {
                     ...orden,
-                    detalles: detallesWithNames
-                }
-            })
+                    detalles: detallesWithNames,
+                };
+            });
+
             setOrdenesCompra(processedOrdenesCompra);
         } catch (error) {
             console.error("Error cargando los datos:", error);
         } finally {
             setIsloading(false);
         }
-    }
+    };
 
     useEffect(() => {
         loadData();
@@ -60,5 +60,4 @@ export const useOrdenCompraData = () => {
         ordenesCompra,
         refreshData: loadData
     }
-
 }
