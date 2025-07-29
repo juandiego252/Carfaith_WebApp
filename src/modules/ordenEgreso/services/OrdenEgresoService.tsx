@@ -8,13 +8,13 @@ export const createOrdenEgresoDetalles = async (data: CreateOrdenEgresoRequest) 
         : formatDateLocal(new Date());
     try {
         const response = await carfaithApi.post<CreateOrdenEgresoRequest>("/OrdenEgreso/CrearOrdenEgresoConDetalles", {
-            tipoEgreso: data.tipoEgreso,
             fecha: formattedDate,
             destino: data.destino,
             estado: data.estado,
             detalles: data.detalles.map(detalle => ({
                 idProductoProveedor: detalle.idProductoProveedor,
                 cantidad: detalle.cantidad,
+                tipoEgreso: detalle.tipoEgreso,
                 ubicacionId: detalle.ubicacionId,
             }))
         });
@@ -42,13 +42,13 @@ export const updateOrdenEgresoConDetalles = async (data: CreateOrdenEgresoReques
     try {
         const response = await carfaithApi.put<CreateOrdenEgresoRequest>("/OrdenEgreso/EditarOrdenEgresoConDetalles", {
             idOrdenEgreso: data.idOrdenEgreso,
-            tipoEgreso: data.tipoEgreso,
             fecha: formattedDate,
             destino: data.destino,
             estado: data.estado,
             detalles: data.detalles.map(detalle => ({
                 idProductoProveedor: detalle.idProductoProveedor,
                 cantidad: detalle.cantidad,
+                tipoEgreso: detalle.tipoEgreso,
                 ubicacionId: detalle.ubicacionId,
             }))
         });

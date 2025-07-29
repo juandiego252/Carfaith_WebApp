@@ -4,6 +4,7 @@ export interface ProductoList {
     nombreProducto: string;
     idLineaProdcuto: number;
     nombreLineaProducto: string;
+    estado: boolean;
 }
 
 export interface LineaDeProducto {
@@ -15,6 +16,7 @@ export interface LineaDeProducto {
 export interface CreateProductoRequest {
     codigoProducto?: string,
     nombre: string,
+    estado: boolean;
     lineaDeProducto: number
 }
 
@@ -22,5 +24,6 @@ export interface EditProductoRequest {
     idProducto: number;
     codigoProducto: string;
     nombre: string;
+    estado: boolean;
     lineaDeProducto: number;
 }
